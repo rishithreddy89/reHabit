@@ -11,8 +11,6 @@ import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
 import LevelUpAnimation from '@/components/LevelUpAnimation';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
-const API = `${BACKEND_URL}/api`;
 import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
