@@ -1,6 +1,8 @@
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import Mentor from '../models/Mentor.js';
+const User = require('../models/User');
+const Admin = require('../models/Admin');
 
 export const requireRole = (...allowedRoles) => {
   return async (req, res, next) => {

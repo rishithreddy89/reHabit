@@ -4,13 +4,31 @@ import { protect, restrictTo } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.use(protect);
-router.use(restrictTo('mentor'));
+// Public routes (specific routes first)
+router.get('/nearby', mentorController.getNearbyMentors);
+router.get('/leaderboard', mentorController.getMentorLeaderboard);
+router.get('/', mentorController.getAllMentors);
 
-router.get('/clients', mentorController.getMyClients);
-router.get('/clients/:userId', mentorController.getClientDetails);
-router.post('/messages', mentorController.sendMessage);
-router.get('/messages/:userId', mentorController.getMessages);
-router.get('/analytics', mentorController.getMentorAnalytics);
+// Protected routes (requires authentication)
+router.use(protect);
+
+// Specific routes before parameterized ones
+router.get('/requests/sent', mentorController.getSentRequests);
+
+// Mentor-only routes (must come before parameterized /:mentorId)
+router.get('/clients', restrictTo('mentor'), mentorController.getMyClients);
+router.get('/clients/:userId', restrictTo('mentor'), mentorController.getClientDetails);
+router.post('/messages', restrictTo('mentor'), mentorController.sendMessage);
+router.get('/messages/:userId', restrictTo('mentor'), mentorController.getMessages);
+router.get('/analytics', restrictTo('mentor'), mentorController.getMentorAnalytics);
+router.get('/requests/received', restrictTo('mentor'), mentorController.getReceivedRequests);
+router.post('/requests/:requestId/accept', restrictTo('mentor'), mentorController.acceptRequest);
+router.post('/requests/:requestId/reject', restrictTo('mentor'), mentorController.rejectRequest);
+
+// Parameterized routes
+router.get('/:mentorId', mentorController.getMentorProfile);
+router.get('/:mentorId/reviews', mentorController.getMentorReviews);
+router.post('/:mentorId/request', mentorController.sendMentorRequest);
+router.post('/:mentorId/review', mentorController.submitReview);
 
 export default router;

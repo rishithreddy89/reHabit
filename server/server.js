@@ -143,6 +143,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/habits', habitRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/challenges', challengeRoutes);
+
+// mount mentor routes
+const mentorRoutes = require('./routes/mentor');
+app.use('/api/mentors', mentorRoutes);
+// add backward-compatible alias for older frontend calls that used singular "mentor"
 app.use('/api/mentor', mentorRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/badges', badgesRoutes);

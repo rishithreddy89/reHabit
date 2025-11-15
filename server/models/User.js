@@ -15,13 +15,27 @@ const userSchema = new mongoose.Schema({
     specialization: [String],
     experience: String,
     maxClients: { type: Number, default: 10 },
-    currentClients: { type: Number, default: 0 }
+    currentClients: { type: Number, default: 0 },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    totalReviews: { type: Number, default: 0 },
+    isOnline: { type: Boolean, default: false },
+    location: {
+      lat: Number,
+      lng: Number,
+      city: String,
+      country: String
+    }
   },
   stats: {
+    xp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
     totalHabits: { type: Number, default: 0 },
     totalCompletions: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
-    currentStreak: { type: Number, default: 0 }
+    currentStreak: { type: Number, default: 0 },
+    activeMentees: { type: Number, default: 0 },
+    totalMentees: { type: Number, default: 0 },
+    successRate: { type: Number, default: 0 }
   }
 }, { timestamps: true });
 
