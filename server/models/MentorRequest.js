@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const mentorRequestSchema = new mongoose.Schema({
   userId: {
@@ -8,7 +8,7 @@ const mentorRequestSchema = new mongoose.Schema({
   },
   mentorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',  // Changed from 'Mentor' to 'User'
+    ref: 'User',  // mentor stored as a User document
     required: true
   },
   status: {
@@ -37,4 +37,5 @@ mentorRequestSchema.pre('save', function(next) {
   next();
 });
 
-module.exports = mongoose.model('MentorRequest', mentorRequestSchema);
+const MentorRequest = mongoose.model('MentorRequest', mentorRequestSchema);
+export default MentorRequest;

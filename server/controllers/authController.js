@@ -1,23 +1,16 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import User from '../models/User.js';
-import Mentor from '../models/Mentor.js';
 import Admin from '../models/Admin.js';
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const User = require('../models/User');
-const Admin = require('../models/Admin');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
 
-const signToken = (id) => {
-  return jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
-};
+const signToken = (id) => jwt.sign({ id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
 function sanitizeUser(user) {
-  const u = user.toObject ? user.toObject() : { ...user };
-  delete u.password;
+  const u = user?.toObject ? user.toObject() : { ...user };
+  if (u && u.password) delete u.password;
   return u;
 }
 
@@ -26,9 +19,8 @@ async function generateUsername(base) {
   return `${sanitized}${Date.now().toString().slice(-4)}`;
 }
 
-const register = async (req, res) => {
+export const register = async (req, res) => {
   try {
-    // fail fast if DB not connected
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ message: 'Database not connected', detail: 'Cannot register while DB is unavailable. Check server logs / MONGO_URI.' });
     }
@@ -51,7 +43,6 @@ const register = async (req, res) => {
       profile: { fullName: name }
     });
 
-    // Initialize mentor-specific fields if role is mentor
     if (role === 'mentor') {
       user.mentorProfile = {
         specialization: ['general'],
@@ -60,12 +51,10 @@ const register = async (req, res) => {
         currentClients: 0
       };
       user.bio = '';
-      console.log('Created user with mentor role and mentorProfile:', user._id);
     }
 
     await user.save();
 
-    // Create admin doc if needed (separate collection)
     if (role === 'admin') {
       try {
         const adminDoc = new Admin({ userId: user._id, permissions: ['all'] });
@@ -83,9 +72,8 @@ const register = async (req, res) => {
   }
 };
 
-const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
-    // fail fast if DB not connected
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ message: 'Database not connected', detail: 'Cannot login while DB is unavailable. Check server logs / MONGO_URI.' });
     }
@@ -114,7 +102,7 @@ const login = async (req, res) => {
   }
 };
 
-const getMe = async (req, res) => {
+export const getMe = async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ message: 'Database not connected', detail: 'Cannot fetch user while DB is unavailable.' });
