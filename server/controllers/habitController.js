@@ -1,6 +1,6 @@
 const Habit = require('../models/Habit');
 const Completion = require('../models/Completion');
-const { classifyHabit, generateVerificationQuestion } = require('../services/aiService');
+const { classifyHabit, generateValidationQuestions, generateVerificationQuestion, validateHabitCompletion, generateEncouragement } = require('../services/aiService');
 
 exports.createHabit = async (req, res) => {
   try {
@@ -88,25 +88,50 @@ exports.completeHabit = async (req, res) => {
       return res.status(404).json({ message: 'Habit not found' });
     }
 
+    // Check if habit has already been completed today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const existingCompletion = await Completion.findOne({
+      habitId: habit._id,
+      userId: req.user._id,
+      isValidated: true, // Only count validated completions
+      completedAt: {
+        $gte: today,
+        $lt: tomorrow
+      }
+    });
+
+    if (existingCompletion) {
+      return res.status(400).json({ 
+        message: 'Habit already completed today! Come back tomorrow to continue your streak.',
+        alreadyCompleted: true 
+      });
+    }
+
+    // Create a completion record but don't update habit stats yet
     const completion = await Completion.create({
       habitId: habit._id,
       userId: req.user._id,
       verificationAnswer,
       notes,
-      mood
+      mood,
+      isValidated: false,
+      currentQuestionIndex: 0, // Track which question we're on
+      allAnswers: [] // Store all answers
     });
 
-    // Update habit stats
-    habit.total_completions += 1;
-    habit.streak += 1;
-    habit.lastCompletedAt = new Date();
-    await habit.save();
+    // Generate multiple validation questions
+    const validationQuestions = await generateValidationQuestions(habit.title, habit.description);
 
     // respond with normalized fields frontend expects
     return res.json({
       habit,
       completion,
-      validation_question: habit.verificationQuestion || (await generateVerificationQuestion(habit.title, habit.description)),
+      validation_questions: validationQuestions, // Multiple questions
+      current_question_index: 0,
       log_id: completion._id
     });
   } catch (error) {
@@ -130,7 +155,11 @@ exports.getHabitLogs = async (req, res) => {
     const logs = completions.map(c => ({
       id: c._id,
       completed_at: c.completedAt || c.createdAt,
-      validated: !!c.aiVerified,
+      validated: !!c.isValidated, // Use isValidated instead of aiVerified
+      ai_verified: !!c.aiVerified,
+      ai_confidence: c.aiConfidence || 0,
+      ai_reasoning: c.aiReasoning || '',
+      completion_status: c.isValidated ? 'completed' : 'attempted',
       validation_question: habit.verificationQuestion || '',
       validation_answer: c.verificationAnswer || '',
       notes: c.notes || '',
@@ -165,6 +194,101 @@ exports.getHabitAnalytics = async (req, res) => {
   }
 };
 
+// Submit answer to current validation question
+exports.submitValidationAnswer = async (req, res) => {
+  try {
+    const { log_id, answer, question_index, all_questions } = req.body;
+    
+    if (!log_id || !answer || question_index === undefined) {
+      return res.status(400).json({ message: 'log_id, answer, and question_index are required' });
+    }
+
+    const completion = await Completion.findById(log_id);
+    if (!completion) {
+      return res.status(404).json({ message: 'Completion not found' });
+    }
+
+    // Add the answer to the array
+    if (!completion.allAnswers) completion.allAnswers = [];
+    completion.allAnswers[question_index] = answer;
+    completion.currentQuestionIndex = question_index + 1;
+    
+    await completion.save();
+
+    // Check if we have all answers
+    const totalQuestions = all_questions ? all_questions.length : 3;
+    const hasAllAnswers = completion.allAnswers.length >= totalQuestions;
+
+    if (hasAllAnswers) {
+      // All questions answered - perform final validation
+      const habit = await Habit.findById(completion.habitId);
+      
+      const validationResult = await validateHabitCompletion(
+        habit.title,
+        habit.description || '',
+        all_questions,
+        completion.allAnswers
+      );
+
+      // Update completion with validation results
+      completion.aiVerified = validationResult.validated;
+      completion.aiConfidence = validationResult.confidence;
+      completion.aiReasoning = validationResult.reasoning;
+
+      const isSuccessfulCompletion = validationResult.confidence >= 80 && validationResult.validated;
+      completion.isValidated = isSuccessfulCompletion;
+      
+      await completion.save();
+
+      // Update habit stats if successful
+      if (isSuccessfulCompletion) {
+        habit.total_completions += 1;
+        habit.streak += 1;
+        habit.lastCompletedAt = new Date();
+        await habit.save();
+      }
+
+      // Calculate XP
+      let xp_earned = 0;
+      if (isSuccessfulCompletion) {
+        xp_earned = 10 + Math.floor(validationResult.confidence / 20);
+      } else if (validationResult.confidence >= 60) {
+        xp_earned = 3;
+      } else {
+        xp_earned = 1;
+      }
+
+      const encouragement = await generateEncouragement(
+        habit.title,
+        habit.streak,
+        isSuccessfulCompletion
+      );
+
+      return res.json({
+        completed: true,
+        xp_earned,
+        new_streak: habit.streak,
+        validated: isSuccessfulCompletion,
+        confidence: validationResult.confidence,
+        reasoning: validationResult.reasoning,
+        encouragement: encouragement,
+        completion_status: isSuccessfulCompletion ? 'completed' : 'attempted'
+      });
+    } else {
+      // More questions to go
+      return res.json({
+        completed: false,
+        next_question_index: completion.currentQuestionIndex,
+        total_questions: totalQuestions
+      });
+    }
+
+  } catch (error) {
+    console.error('Submit answer error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // new: validate a completion (frontend posts { habit_id, answer, log_id? })
 exports.validateCompletion = async (req, res) => {
   try {
@@ -188,25 +312,68 @@ exports.validateCompletion = async (req, res) => {
       return res.status(404).json({ message: 'Completion log not found' });
     }
 
-    // save provided answer
-    completion.verificationAnswer = answer;
+    // Use AI to validate the completion
+    const validationResult = await validateHabitCompletion(
+      habit.title,
+      habit.description || '',
+      habit.verificationQuestion || 'How did you complete this habit today?',
+      answer
+    );
 
-    // very small heuristic: mark aiVerified if answer length is reasonable
-    const aiVerified = typeof answer === 'string' && answer.trim().length >= 5;
-    completion.aiVerified = aiVerified;
+    // Save the validation results
+    completion.verificationAnswer = answer;
+    completion.aiVerified = validationResult.validated;
+    completion.aiConfidence = validationResult.confidence;
+    completion.aiReasoning = validationResult.reasoning;
+
+    // Only mark as successfully completed if confidence is 80 or above
+    const isSuccessfulCompletion = validationResult.confidence >= 80 && validationResult.validated;
+    completion.isValidated = isSuccessfulCompletion;
+    
     await completion.save();
 
-    // compute xp reward (simple rule; adjust later with AI)
-    const xp_earned = aiVerified ? 10 : 2;
+    // Only update habit stats if the completion is successful (80+ confidence)
+    if (isSuccessfulCompletion) {
+      habit.total_completions += 1;
+      habit.streak += 1;
+      habit.lastCompletedAt = new Date();
+      await habit.save();
+    } else {
+      // If validation fails, we might want to reset or not count towards streak
+      // For now, we'll just not update the stats
+    }
 
-    // optionally update habit streak/new stats here if desired (completeHabit already updated habit)
-    // return current habit streak as new_streak
+    // Calculate XP reward based on AI validation
+    let xp_earned = 0;
+    if (isSuccessfulCompletion) {
+      // Base XP + bonus for confidence
+      xp_earned = 10 + Math.floor(validationResult.confidence / 20);
+    } else if (validationResult.confidence >= 60) {
+      // Partial XP for good effort but not complete success
+      xp_earned = 3;
+    } else {
+      // Minimal XP for attempting
+      xp_earned = 1;
+    }
+
+    // Generate personalized encouragement
+    const encouragement = await generateEncouragement(
+      habit.title,
+      habit.streak,
+      isSuccessfulCompletion
+    );
+
+    // Get updated habit info
     const freshHabit = await Habit.findById(habit._id);
 
     return res.json({
       xp_earned,
       new_streak: freshHabit ? freshHabit.streak : 0,
-      validated: aiVerified,
+      validated: isSuccessfulCompletion,
+      confidence: validationResult.confidence,
+      reasoning: validationResult.reasoning,
+      encouragement: encouragement,
+      completion_status: isSuccessfulCompletion ? 'completed' : 'attempted',
       log_id: completion._id
     });
   } catch (error) {
