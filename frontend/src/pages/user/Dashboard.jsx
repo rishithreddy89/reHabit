@@ -115,6 +115,8 @@ const UserDashboard = ({ user, onLogout }) => {
     );
   }
 
+  const displayName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : '';
+
   return (
     <Layout user={user} onLogout={onLogout} role="user">
       {/* Level Up Animation Overlay */}
@@ -124,76 +126,77 @@ const UserDashboard = ({ user, onLogout }) => {
         onComplete={() => setShowLevelUp(false)}
       />
 
-      <div className="space-y-6" data-testid="user-dashboard">
+      <div className="space-y-4 sm:space-y-6" data-testid="user-dashboard">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Welcome back, {user.name}!</h1>
-            <p className="text-slate-600 mt-1">Let's keep building those habits</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 font-raleway" style={{ fontFamily: 'Raleway, sans-serif' }}>Welcome back, {displayName}!</h1>
+            <p className="text-slate-600 mt-1 text-sm sm:text-base font-merriweather" style={{ fontFamily: 'Merriweather, serif' }}>Let's keep building those habits</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchDashboardData} className="gap-2" data-testid="refresh-btn">
+            <Button variant="outline" onClick={fetchDashboardData} className="gap-2 flex-1 sm:flex-none" data-testid="refresh-btn">
               <TrendingUp className="w-4 h-4" />
-              Refresh
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
-            <Link to="/user/habits">
-              <Button className="gap-2" data-testid="add-habit-btn">
+            <Link to="/user/habits" className="flex-1 sm:flex-none">
+              <Button className="gap-2 w-full" data-testid="add-habit-btn">
                 <Plus className="w-4 h-4" />
-                Add Habit
+                <span className="hidden sm:inline">Add Habit</span>
+                <span className="sm:hidden">Add</span>
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           <Card className="card-hover" data-testid="stat-total-habits">
             <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
-              <Target className="w-5 h-5 text-emerald-600" />
-              <CardTitle className="text-sm font-medium text-slate-600">Total Habits</CardTitle>
+              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">Total Habits</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-bold text-slate-800">{stats?.total_habits || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">Active tracking</p>
+              <div className="text-2xl sm:text-3xl font-bold text-slate-800">{stats?.total_habits || 0}</div>
+              <p className="text-xs text-slate-500 mt-1 hidden sm:block">Active tracking</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-current-streak">
             <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
-              <Flame className="w-5 h-5 text-orange-500" />
-              <CardTitle className="text-sm font-medium text-slate-600">Current Streak</CardTitle>
+              <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">Current Streak</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-bold streak-fire">{stats?.streak || 0} days</div>
-              <p className="text-xs text-slate-500 mt-1">Keep it going!</p>
+              <div className="text-2xl sm:text-3xl font-bold streak-fire">{stats?.streak || 0} days</div>
+              <p className="text-xs text-slate-500 mt-1 hidden sm:block">Keep it going!</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-total-xp">
             <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
-              <Star className="w-5 h-5 text-yellow-500" />
-              <CardTitle className="text-sm font-medium text-slate-600">Total XP</CardTitle>
+              <Star className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">Total XP</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-bold text-slate-800 xp-glow">{stats?.xp || 0}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-slate-800 xp-glow">{stats?.xp || 0}</div>
               <p className="text-xs text-slate-500 mt-1">Level {stats?.level || 1}</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-completions">
             <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
-              <TrendingUp className="w-5 h-5 text-blue-600" />
-              <CardTitle className="text-sm font-medium text-slate-600">Completions</CardTitle>
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-600">Completions</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
-              <div className="text-3xl font-bold text-slate-800">{stats?.total_completions || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">All time</p>
+              <div className="text-2xl sm:text-3xl font-bold text-slate-800">{stats?.total_completions || 0}</div>
+              <p className="text-xs text-slate-500 mt-1 hidden sm:block">All time</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Plant Growth Visualization */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Plant Growth Card */}
           <div className="lg:col-span-1">
             <PlantGrowthCard userStreak={stats?.streak || 0} />
@@ -247,7 +250,7 @@ const UserDashboard = ({ user, onLogout }) => {
         </div>
 
         {/* Leaderboard Section */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Leaderboard Preview */}
           <Card>
             <CardHeader>

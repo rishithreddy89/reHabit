@@ -235,7 +235,53 @@ const HabitDetail = ({ user, onLogout }) => {
           </Card>
         )}
 
-        {/* AI Guidance Card */}
+        <div className="grid md:grid-cols-4 gap-6">
+          <Card data-testid="stat-current-streak">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Current Streak</CardTitle>
+              <Flame className="w-5 h-5 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold streak-fire">{habit.streak}</div>
+              <p className="text-xs text-slate-500 mt-1">days</p>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="stat-longest-streak">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Longest Streak</CardTitle>
+              <TrendingUp className="w-5 h-5 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-slate-800">{habit.longest_streak}</div>
+              <p className="text-xs text-slate-500 mt-1">days</p>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="stat-total-completions">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Total Completions</CardTitle>
+              <Target className="w-5 h-5 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-slate-800">{habit.total_completions}</div>
+              <p className="text-xs text-slate-500 mt-1">times</p>
+            </CardContent>
+          </Card>
+
+          <Card data-testid="stat-frequency">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Frequency</CardTitle>
+              <Calendar className="w-5 h-5 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-800 capitalize">{habit.frequency}</div>
+              <p className="text-xs text-slate-500 mt-1">tracking</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI Guidance Card - Moved below stats */}
         <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-3 text-slate-800">
@@ -316,52 +362,6 @@ const HabitDetail = ({ user, onLogout }) => {
             )}
           </CardContent>
         </Card>
-
-        <div className="grid md:grid-cols-4 gap-6">
-          <Card data-testid="stat-current-streak">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Current Streak</CardTitle>
-              <Flame className="w-5 h-5 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold streak-fire">{habit.streak}</div>
-              <p className="text-xs text-slate-500 mt-1">days</p>
-            </CardContent>
-          </Card>
-
-          <Card data-testid="stat-longest-streak">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Longest Streak</CardTitle>
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{habit.longest_streak}</div>
-              <p className="text-xs text-slate-500 mt-1">days</p>
-            </CardContent>
-          </Card>
-
-          <Card data-testid="stat-total-completions">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Completions</CardTitle>
-              <Target className="w-5 h-5 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{habit.total_completions}</div>
-              <p className="text-xs text-slate-500 mt-1">times</p>
-            </CardContent>
-          </Card>
-
-          <Card data-testid="stat-frequency">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Frequency</CardTitle>
-              <Calendar className="w-5 h-5 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-800 capitalize">{habit.frequency}</div>
-              <p className="text-xs text-slate-500 mt-1">tracking</p>
-            </CardContent>
-          </Card>
-        </div>
 
         <Card>
           <CardHeader>
@@ -642,7 +642,7 @@ const HabitDetail = ({ user, onLogout }) => {
         {/* AI Step-by-Step Guidance Dialog */}
         <Dialog open={showAIGuidance} onOpenChange={setShowAIGuidance}>
           <DialogContent 
-            className="bg-gradient-to-br from-white to-slate-50 rounded-3xl shadow-2xl border-0 p-0 max-w-5xl mx-auto max-h-[95vh] overflow-hidden backdrop-blur-sm [&>button]:hidden"
+            className="bg-gradient-to-br from-white to-slate-50 rounded-3xl shadow-2xl border-0 p-0 max-w-7xl mx-auto max-h-[95vh] overflow-hidden backdrop-blur-sm [&>button]:hidden"
             data-testid="ai-guidance-dialog"
             style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
           >
@@ -667,7 +667,7 @@ const HabitDetail = ({ user, onLogout }) => {
               </DialogTitle>
             </DialogHeader>
             
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
+            <div className="p-6 overflow-y-auto max-h-[50vh]">
               {aiSteps.length > 0 && (
                 <div className="space-y-6">
                   {/* Progress Overview */}

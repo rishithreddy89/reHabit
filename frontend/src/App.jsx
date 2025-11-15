@@ -20,6 +20,7 @@ import ProfilePage from '@/pages/user/ProfilePage';
 import MentorsPage from './pages/user/MentorsPage';
 import MentorProfilePage from './pages/user/MentorProfilePage';
 import MentorRequestsPage from './pages/user/MentorRequestsPage';
+import MySubscriptions from './pages/user/MySubscriptions';
 
 // Mentor pages
 import MentorDashboard from '@/pages/mentor/MentorDashboard';
