@@ -41,7 +41,7 @@ const BadgesPage = ({ user, onLogout }) => {
     <Layout user={user} onLogout={onLogout} role="user">
       <div className="space-y-6" data-testid="badges-page">
         <div>
-          <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Badges & Rewards</h1>
+          <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Badges & Rewards</h1>
           <p className="text-slate-600 mt-1">Unlock achievements as you build habits</p>
         </div>
 
