@@ -32,17 +32,19 @@ const Layout = ({ children, user, onLogout, role = 'user' }) => {
 
   const navItems = role === 'mentor' ? mentorNavItems : role === 'admin' ? adminNavItems : userNavItems;
 
+  console.log('Layout navItems:', navItems);
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navbar (pill, floating) */}
       <TopNavbar
-        items={navItems.map(i => ({ path: i.path, label: i.label }))}
+        items={navItems}
         brandHref={`/${role}/dashboard`}
         onLogout={onLogout}
       />
 
       {/* Main Content */}
-      <main className="mx-auto max-w-6xl px-4 pb-10 pt-6">
+      <main className="mx-auto max-w-6xl px-3 sm:px-4 pb-10 pt-4 sm:pt-6">
         {children}
       </main>
     </div>
