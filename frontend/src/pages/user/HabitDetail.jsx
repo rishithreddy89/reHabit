@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Flame, Target, Calendar, TrendingUp, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Flame, Target, Calendar, TrendingUp, CheckCircle, ArrowLeft, Star, Award, Brain } from 'lucide-react';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
 
@@ -19,7 +19,28 @@ const HabitDetail = ({ user, onLogout }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [validationDialog, setValidationDialog] = useState(false);
-  const [validationData, setValidationData] = useState({ question: '', logId: '', answer: '' });
+  const [validationData, setValidationData] = useState({ 
+    questions: [], 
+    currentQuestionIndex: 0, 
+    answers: [], 
+    currentAnswer: '', 
+    logId: '' 
+  });
+  const [validationResult, setValidationResult] = useState(null);
+  const [showValidationResult, setShowValidationResult] = useState(false);
+
+  // Check if habit was completed today
+  const isCompletedToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return logs.some(log => {
+      const logDate = new Date(log.completed_at);
+      return log.validated && logDate >= today && logDate < tomorrow;
+    });
+  };
 
   useEffect(() => {
     fetchHabitData();
@@ -43,29 +64,64 @@ const HabitDetail = ({ user, onLogout }) => {
 
   const handleComplete = async () => {
     try {
-      const response = await axios.post(`${API}/habits/${habitId}/complete`);
+      const response = await axios.post(`/habits/${habitId}/complete`);
       setValidationData({
-        question: response.data.validation_question,
-        logId: response.data.log_id,
-        answer: ''
+        questions: response.data.validation_questions || [response.data.validation_question],
+        currentQuestionIndex: 0,
+        answers: [],
+        currentAnswer: '',
+        logId: response.data.log_id
       });
       setValidationDialog(true);
     } catch (error) {
-      toast.error('Failed to mark as complete');
+      if (error.response?.data?.alreadyCompleted) {
+        toast.info(error.response.data.message || 'Habit already completed today!');
+      } else {
+        toast.error('Failed to mark as complete');
+      }
     }
   };
 
-  const handleValidation = async () => {
+  const handleSubmitAnswer = async () => {
     try {
-      const response = await axios.post(`${API}/habits/validate`, {
-        habit_id: habitId,
-        answer: validationData.answer
+      const response = await axios.post(`/habits/validate-answer`, {
+        log_id: validationData.logId,
+        answer: validationData.currentAnswer,
+        question_index: validationData.currentQuestionIndex,
+        all_questions: validationData.questions
       });
-      toast.success(`+${response.data.xp_earned} XP! Streak: ${response.data.new_streak} days`);
-      setValidationDialog(false);
-      fetchHabitData();
+
+      // Update answers array
+      const newAnswers = [...validationData.answers];
+      newAnswers[validationData.currentQuestionIndex] = validationData.currentAnswer;
+
+      if (response.data.completed) {
+        // All questions answered - show results
+        setValidationResult(response.data);
+        setValidationDialog(false);
+        setShowValidationResult(true);
+        
+        if (response.data.completion_status === 'completed') {
+          toast.success(`🎉 Habit Completed! +${response.data.xp_earned} XP! Streak: ${response.data.new_streak} days`);
+        } else {
+          toast.info(`💪 Good effort! +${response.data.xp_earned} XP. Keep improving!`);
+        }
+        
+        fetchHabitData();
+      } else {
+        // More questions to go
+        setValidationData(prev => ({
+          ...prev,
+          answers: newAnswers,
+          currentQuestionIndex: response.data.next_question_index,
+          currentAnswer: ''
+        }));
+        
+        toast.info(`Question ${response.data.next_question_index + 1} of ${validationData.questions.length}`);
+      }
     } catch (error) {
-      toast.error('Failed to validate completion');
+      console.error('Submit answer error:', error);
+      toast.error('Failed to submit answer');
     }
   };
 
@@ -94,10 +150,17 @@ const HabitDetail = ({ user, onLogout }) => {
             <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>{habit.title}</h1>
             <p className="text-slate-600 mt-1">{habit.category} • {habit.frequency}</p>
           </div>
-          <Button onClick={handleComplete} className="gap-2" data-testid="complete-habit-btn">
-            <CheckCircle className="w-4 h-4" />
-            Mark as Done
-          </Button>
+          {isCompletedToday() ? (
+            <Button disabled className="gap-2 bg-emerald-100 text-emerald-700 border-emerald-300" data-testid="completed-today-btn">
+              <CheckCircle className="w-4 h-4" />
+              Completed Today! ✨
+            </Button>
+          ) : (
+            <Button onClick={handleComplete} className="gap-2" data-testid="complete-habit-btn">
+              <CheckCircle className="w-4 h-4" />
+              Mark as Done
+            </Button>
+          )}
         </div>
 
         {habit.description && (
@@ -175,15 +238,37 @@ const HabitDetail = ({ user, onLogout }) => {
                           {new Date(log.completed_at).toLocaleDateString()}
                         </span>
                       </div>
-                      {log.validated && (
-                        <span className="text-sm text-emerald-600 font-medium">Validated</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {log.completion_status === 'completed' ? (
+                          <>
+                            <CheckCircle className="w-5 h-5 text-emerald-600" />
+                            <span className="flex items-center gap-1 text-sm text-emerald-600 font-medium">
+                              <Brain className="w-4 h-4" />
+                              Completed ({log.ai_confidence}%)
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Star className="w-5 h-5 text-orange-500" />
+                            <span className="flex items-center gap-1 text-sm text-orange-600 font-medium">
+                              <Brain className="w-4 h-4" />
+                              Attempted ({log.ai_confidence}%)
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     {log.validation_question && (
                       <div className="mt-2 text-sm text-slate-600">
                         <p className="font-medium">Q: {log.validation_question}</p>
                         {log.validation_answer && (
                           <p className="mt-1">A: {log.validation_answer}</p>
+                        )}
+                        {log.ai_reasoning && (
+                          <div className="mt-2 p-2 bg-slate-50 rounded text-xs">
+                            <span className="font-medium">AI Analysis: </span>
+                            {log.ai_reasoning}
+                          </div>
                         )}
                       </div>
                     )}
@@ -201,27 +286,143 @@ const HabitDetail = ({ user, onLogout }) => {
           >
             <DialogHeader>
               <DialogTitle>Validate Your Completion</DialogTitle>
-              <DialogDescription>Answer this quick question to confirm you completed the habit</DialogDescription>
+              <DialogDescription>
+                Question {validationData.currentQuestionIndex + 1} of {validationData.questions.length}
+                {validationData.questions.length > 1 && " - Answer each question thoroughly"}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="p-4 bg-slate-50  rounded-lg">
-                <p className="text-slate-800  font-medium">{validationData.question}</p>
+              {/* Progress indicator for multiple questions */}
+              {validationData.questions.length > 1 && (
+                <div className="w-full bg-slate-200 rounded-full h-2">
+                  <div 
+                    className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
+                    style={{ 
+                      width: `${((validationData.currentQuestionIndex) / validationData.questions.length) * 100}%` 
+                    }}
+                  ></div>
+                </div>
+              )}
+              
+              <div className="p-4 bg-slate-50 rounded-lg">
+                <p className="text-slate-800 font-medium">
+                  {validationData.questions[validationData.currentQuestionIndex]}
+                </p>
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="validation-answer">Your Answer</Label>
                 <Textarea
                   id="validation-answer"
                   placeholder="Type your answer here..."
-                  value={validationData.answer}
-                  onChange={(e) => setValidationData({...validationData, answer: e.target.value})}
+                  value={validationData.currentAnswer}
+                  onChange={(e) => setValidationData(prev => ({...prev, currentAnswer: e.target.value}))}
                   data-testid="validation-answer-input"
-                  className="bg-white dark:bg-slate-800 text-slate-900  caret-emerald-600 dark:caret-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-500"
+                  className="bg-white dark:bg-slate-800 text-slate-900 caret-emerald-600 dark:caret-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-500"
                 />
               </div>
-              <Button onClick={handleValidation} className="w-full" disabled={!validationData.answer} data-testid="submit-validation-btn">
-                Submit & Earn XP
+              
+              <Button 
+                onClick={handleSubmitAnswer} 
+                className="w-full" 
+                disabled={!validationData.currentAnswer} 
+                data-testid="submit-validation-btn"
+              >
+                {validationData.currentQuestionIndex === validationData.questions.length - 1 
+                  ? 'Complete Validation & Earn XP' 
+                  : 'Next Question'}
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* AI Validation Result Dialog */}
+        <Dialog open={showValidationResult} onOpenChange={setShowValidationResult}>
+          <DialogContent
+            data-testid="validation-result-dialog"
+            className="bg-white rounded-2xl shadow-2xl p-6 border border-slate-200 max-w-lg mx-auto"
+          >
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Brain className="w-6 h-6 text-emerald-600" />
+                AI Validation Result
+              </DialogTitle>
+            </DialogHeader>
+            
+            {validationResult && (
+              <div className="space-y-6">
+                {/* Validation Status */}
+                <div className={`p-4 rounded-lg border-2 ${
+                  validationResult.completion_status === 'completed'
+                    ? 'bg-emerald-50 border-emerald-200' 
+                    : validationResult.confidence >= 60
+                    ? 'bg-yellow-50 border-yellow-200'
+                    : 'bg-orange-50 border-orange-200'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    {validationResult.completion_status === 'completed' ? (
+                      <CheckCircle className="w-6 h-6 text-emerald-600" />
+                    ) : validationResult.confidence >= 60 ? (
+                      <Star className="w-6 h-6 text-yellow-500" />
+                    ) : (
+                      <Star className="w-6 h-6 text-orange-500" />
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-slate-800">
+                        {validationResult.completion_status === 'completed' 
+                          ? 'Habit Successfully Completed!' 
+                          : validationResult.confidence >= 60
+                          ? 'Good Effort - Keep Improving!'
+                          : 'Attempt Recorded - Try Again!'
+                        }
+                      </h3>
+                      <p className="text-sm text-slate-600">
+                        AI Confidence: {validationResult.confidence}% 
+                        {validationResult.confidence < 80 && ' (Need 80+ to mark as complete)'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* XP and Streak Info */}
+                <div className="flex gap-4">
+                  <div className="flex-1 p-3 bg-blue-50 rounded-lg text-center">
+                    <Award className="w-6 h-6 text-blue-600 mx-auto mb-1" />
+                    <div className="text-2xl font-bold text-blue-600">+{validationResult.xp_earned}</div>
+                    <div className="text-sm text-blue-700">XP Earned</div>
+                  </div>
+                  <div className="flex-1 p-3 bg-orange-50 rounded-lg text-center">
+                    <Flame className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+                    <div className="text-2xl font-bold text-orange-600">{validationResult.new_streak}</div>
+                    <div className="text-sm text-orange-700">Day Streak</div>
+                  </div>
+                </div>
+
+                {/* AI Reasoning */}
+                {validationResult.reasoning && (
+                  <div className="p-4 bg-slate-50 rounded-lg">
+                    <h4 className="font-medium text-slate-800 mb-2">AI Analysis:</h4>
+                    <p className="text-sm text-slate-600">{validationResult.reasoning}</p>
+                  </div>
+                )}
+
+                {/* Encouragement Message */}
+                {validationResult.encouragement && (
+                  <div className="p-4 bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg border border-emerald-200">
+                    <p className="text-center text-slate-800 font-medium">
+                      {validationResult.encouragement}
+                    </p>
+                  </div>
+                )}
+
+                <Button 
+                  onClick={() => setShowValidationResult(false)} 
+                  className="w-full"
+                >
+                  Continue Building Habits!
+                </Button>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
