@@ -61,8 +61,8 @@ const LeaderboardPage = ({ user, onLogout }) => {
     <Layout user={user} onLogout={onLogout} role="user">
       <div className="space-y-6" data-testid="leaderboard-page">
         <div>
-          <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Leaderboard</h1>
-          <p className="text-slate-600 mt-1">See how you rank among the community</p>
+          <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Leaderboard</h1>
+          <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>See how you rank among the community</p>
         </div>
 
         {/* User's Rank Card */}

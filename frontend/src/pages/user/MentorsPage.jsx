@@ -109,8 +109,8 @@ const MentorsPage = ({ user, onLogout }) => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Find a Mentor</h1>
-            <p className="text-slate-600 mt-1">Connect with experienced mentors to guide your journey</p>
+            <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Find a Mentor</h1>
+            <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>Connect with experienced mentors to guide your journey</p>
           </div>
           <Link to="/user/mentors/requests">
             <Button variant="outline" className="gap-2">

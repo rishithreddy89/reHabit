@@ -297,8 +297,8 @@ const CommunityPage = ({ user, onLogout }) => {
       <div className="space-y-6" data-testid="community-page">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Community</h1>
-            <p className="text-slate-600 mt-1">Connect with others on their habit journey</p>
+            <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Community</h1>
+            <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>Connect with others on their habit journey</p>
           </div>
           <div className="flex gap-3">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

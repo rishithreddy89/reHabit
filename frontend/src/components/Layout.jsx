@@ -45,6 +45,7 @@ const Layout = ({ children, user, onLogout, role = 'user' }) => {
         items={navItems}
         brandHref={`/${role}/dashboard`}
         onLogout={onLogout}
+        user={user}
       />
 
       {/* Main Content - intentionally narrower than navbar pill */}

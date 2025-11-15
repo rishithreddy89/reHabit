@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Zap, Menu, X, LogOut } from 'lucide-react';
+import { Zap, Menu, X, LogOut, Map } from 'lucide-react';
+import ProgressMapContainer from '@/components/progress-map/ProgressMapContainer_v2';
 import { Button } from '@/components/ui/button';
 
 // props:
@@ -8,9 +9,27 @@ import { Button } from '@/components/ui/button';
 // - brandHref: string
 // - onLogout?: () => void
 // - cta?: { label: string, href?: string, onClick?: () => void }
-const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
+const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const navRef = useRef(null);
+  const [highlightStyle, setHighlightStyle] = useState(null);
+  const [showProgressMap, setShowProgressMap] = useState(false);
+
+  useEffect(() => {
+    if (!navRef.current) return;
+    const activeIndex = items.findIndex((item) => location.pathname === item.path);
+    if (activeIndex === -1) {
+      setHighlightStyle(null);
+      return;
+    }
+    const navLinks = navRef.current.querySelectorAll('.nav-link');
+    const activeLink = navLinks[activeIndex];
+    if (activeLink) {
+      const { offsetLeft, offsetWidth } = activeLink;
+      setHighlightStyle({ left: offsetLeft, width: offsetWidth });
+    }
+  }, [location.pathname, items]);
 
   const isActive = (path) => location.pathname === path;
 
@@ -76,16 +95,27 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
             </div>
 
             {/* Center: Nav links (Desktop only) */}
-            <nav className="hidden md:flex items-center gap-2 text-sm text-slate-700">
+            <nav ref={navRef} className="hidden md:flex items-center gap-2 text-sm text-slate-700 relative">
+              {highlightStyle && (
+                <span
+                  className="absolute top-0 h-full bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                  style={{ 
+                    left: highlightStyle.left, 
+                    width: highlightStyle.width, 
+                    zIndex: 0 
+                  }}
+                />
+              )}
               {items.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`rounded-full px-3 py-2 transition-colors hover:text-slate-900 ${
-                    isActive(item.path) ? 'bg-slate-900 text-white' : ''
+                  className={`nav-link relative rounded-full px-3 py-2 transition-colors ${
+                    isActive(item.path) ? 'text-white' : ''
                   }`}
+                  style={{ zIndex: 1 }}
                 >
-                  {item.label}
+                  <span className="relative z-10">{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -127,6 +157,17 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
               </button>
             </div>
             <nav className="p-4 flex flex-col gap-2 overflow-y-auto">
+              {/* Progress Map quick access (mobile only) */}
+              <button
+                onClick={() => setShowProgressMap(true)}
+                className="rounded-lg px-4 py-3 text-sm font-semibold text-white"
+                style={{
+                  background: 'linear-gradient(135deg,#34d399,#10b981)',
+                  boxShadow: '0 8px 20px rgba(16,185,129,0.35)'
+                }}
+              >
+                <span className="inline-flex items-center gap-2"><Map className="h-5 w-5" /> Progress Map</span>
+              </button>
               {items.map((item) => {
                 // Remove AI Chat from mobile drawer; will be accessed via floating button
                 if (item.label === 'AI Chat') return null;
@@ -136,14 +177,19 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
                     key={item.path}
                     to={item.path}
                     onClick={() => setIsOpen(false)}
-                    className={`rounded-lg px-4 py-3 text-sm font-medium transition-colors hover:bg-slate-100 flex items-center gap-3 ${
-                      isActive(item.path)
-                        ? 'bg-slate-900 text-white hover:bg-slate-800'
-                        : 'text-slate-700'
+                    className={`relative rounded-lg px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3 overflow-hidden ${
+                      isActive(item.path) ? 'text-white' : 'text-slate-700'
                     }`}
+                    style={{ zIndex: 1 }}
                   >
-                    {Icon ? <Icon className="h-5 w-5 flex-shrink-0" /> : null}
-                    <span>{item.label}</span>
+                    {isActive(item.path) && (
+                      <span
+                        className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 transition-all duration-500"
+                        style={{ zIndex: -1, borderRadius: '0.5rem' }}
+                      />
+                    )}
+                    {Icon ? <Icon className="h-5 w-5 flex-shrink-0 relative z-10" /> : null}
+                    <span className="relative z-10">{item.label}</span>
                   </Link>
                 );
               })}
@@ -163,6 +209,32 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
                 <div className="mt-2">{renderCTA()}</div>
               )}
             </nav>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Progress Map Overlay */}
+      {showProgressMap && (
+        <div
+          className="md:hidden"
+          style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(15,23,42,0.35)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowProgressMap(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              margin: '12px',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
+            }}
+          >
+            <ProgressMapContainer onClose={() => setShowProgressMap(false)} currentUserData={user} />
           </div>
         </div>
       )}

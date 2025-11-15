@@ -110,7 +110,7 @@ const MySubscriptions = ({ user, onLogout }) => {
     return (
       <Layout user={user} onLogout={onLogout} role="user">
         <div className="space-y-6">
-          <h1 className="text-3xl font-bold" style={{fontFamily: 'Space Grotesk'}}>My Subscriptions</h1>
+          <h1 className="text-3xl font-bold" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>My Subscriptions</h1>
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Users className="w-16 h-16 text-slate-300 mb-4" />
@@ -131,8 +131,8 @@ const MySubscriptions = ({ user, onLogout }) => {
   return (
     <Layout user={user} onLogout={onLogout} role="user">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold" style={{fontFamily: 'Space Grotesk'}}>My Subscriptions</h1>
-        <p className="text-slate-600">Manage your mentor subscriptions and track your progress</p>
+        <h1 className="text-3xl font-bold" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>My Subscriptions</h1>
+        <p className="text-slate-600" style={{ fontFamily: 'Spectral, serif' }}>Manage your mentor subscriptions and track your progress</p>
 
         <div className="grid gap-6">
           {subscriptions.map((subscription) => {
