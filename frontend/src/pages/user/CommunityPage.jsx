@@ -9,27 +9,37 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Plus, UserPlus, Trophy } from 'lucide-react';
+import { Users, Plus, UserPlus, Trophy, MessageCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
-import { mockCommunities } from '@/lib/mockData';
+import { mockCommunities } from '@/lib/mockCommunityFeed';
 import StudioHub from '@/components/StudioHub';
 import CommunityFeed from '@/components/CommunityFeed';
 import demoStore from '@/lib/demoStore';
 
 const CommunityPage = ({ user, onLogout }) => {
   const [communities, setCommunities] = useState([]);
+  const [studios, setStudios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'group'
+    category: 'general'
   });
-
-  useEffect(() => {
-    fetchCommunities();
-  }, []);
+  const [selectedCommunity, setSelectedCommunity] = useState(null);
+  const [exploreDialogOpen, setExploreDialogOpen] = useState(false);
+  const [challengeDialogOpen, setChallengeDialogOpen] = useState(false);
+  const [challengeData, setChallengeData] = useState({
+    title: '',
+    description: '',
+    communityId: '',
+    category: 'fitness',
+    difficulty: 'medium',
+    duration: 30,
+    startDate: new Date().toISOString().split('T')[0]
+  });
 
   const [demoJoined, setDemoJoined] = useState(() => demoStore.getJoinedCommunities());
 
@@ -38,27 +48,47 @@ const CommunityPage = ({ user, onLogout }) => {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    fetchCommunities();
+    fetchStudios();
+  }, []);
+
   const fetchCommunities = async () => {
     try {
       const response = await axios.get(`${API}/communities`);
-      // backend may return { communities: [...] } or an array; normalize
       const data = response.data?.communities ?? response.data ?? [];
       if (!data || (Array.isArray(data) && data.length === 0)) {
-        // fallback to demo communities when backend returns empty (silent)
-        setCommunities(demoStore.getCommunities());
+        const demoCommunities = demoStore.getCommunities();
+        const mockRecommendations = mockCommunities.filter(mc => 
+          ['Morning Risers', 'Focus Hour', 'Evening Walkers'].includes(mc.name) &&
+          !demoCommunities.find(dc => dc.name === mc.name)
+        );
+        setCommunities([...demoCommunities, ...mockRecommendations]);
       } else {
         setCommunities(data);
       }
     } catch (error) {
-      // if unauthorized or backend unavailable, fall back to mock data
-      // If unauthorized or backend unreachable, show demo communities
       if (error?.response?.status === 401 || !error?.response) {
-        setCommunities(demoStore.getCommunities());
+        const demoCommunities = demoStore.getCommunities();
+        const mockRecommendations = mockCommunities.filter(mc => 
+          ['Morning Risers', 'Focus Hour', 'Evening Walkers'].includes(mc.name) &&
+          !demoCommunities.find(dc => dc.name === mc.name)
+        );
+        setCommunities([...demoCommunities, ...mockRecommendations]);
       } else {
         toast.error('Failed to load communities');
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStudios = async () => {
+    try {
+      const response = await axios.get(`${API}/studios`);
+      setStudios(response.data || []);
+    } catch (error) {
+      console.error('Failed to load studios:', error);
     }
   };
 
@@ -73,44 +103,82 @@ const CommunityPage = ({ user, onLogout }) => {
       setCommunities([...communities, response.data]);
       toast.success('Community created!');
       setDialogOpen(false);
-      setFormData({ name: '', description: '', type: 'group' });
+      setFormData({ name: '', description: '', category: 'general' });
     } catch (error) {
       const status = error?.response?.status;
-      // If user not signed in or backend error, create demo community locally
       if (!user?.id || !error?.response || status === 401 || status >= 500) {
         const created = demoStore.addCommunity({ ...formData, createdBy: user?.id });
         setCommunities(prev => [created, ...prev]);
         toast.success('Community created (demo)');
         setDialogOpen(false);
-        setFormData({ name: '', description: '', type: 'group' });
+        setFormData({ name: '', description: '', category: 'general' });
         return;
       }
       toast.error('Failed to create community');
     }
   };
 
+  const handleChallengeSubmit = async (e) => {
+    e.preventDefault();
+    if (!challengeData.communityId) {
+      toast.error('Please select a community or studio');
+      return;
+    }
+    try {
+      await axios.post(`${API}/challenges`, challengeData);
+      toast.success('Challenge created!');
+      setChallengeDialogOpen(false);
+      setChallengeData({
+        title: '',
+        description: '',
+        communityId: '',
+        category: 'fitness',
+        difficulty: 'medium',
+        duration: 30,
+        startDate: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create challenge');
+    }
+  };
+
   const handleJoin = async (communityId) => {
+    const community = communities.find(c => (c._id || c.id) === communityId);
+    const isMockCommunity = community && !community._id && community.id;
+    
+    if (isMockCommunity) {
+      demoStore.joinCommunity(communityId);
+      setCommunities(prev => prev.map(c => {
+        const cId = c._id || c.id;
+        if (cId !== communityId) return c;
+        const nextMembers = Array.isArray(c.members) ? [...c.members] : [];
+        const userId = user?._id || user?.id;
+        if (userId && !nextMembers.includes(userId)) nextMembers.push(userId);
+        return { ...c, members: nextMembers };
+      }));
+      toast.success('Joined community (demo)');
+      return;
+    }
+
     try {
       await axios.post(`${API}/communities/${communityId}/join`);
       toast.success('Joined community!');
       fetchCommunities();
     } catch (error) {
-      // If backend is unavailable or has a server error, fall back to demo join
       const status = error?.response?.status;
       if (!error?.response || (status && status >= 500)) {
-        // persist demo join and update local view
         demoStore.joinCommunity(communityId);
         setCommunities(prev => prev.map(c => {
-          if (c.id !== communityId) return c;
+          const cId = c._id || c.id;
+          if (cId !== communityId) return c;
           const nextMembers = Array.isArray(c.members) ? [...c.members] : [];
-          if (user?.id && !nextMembers.includes(user.id)) nextMembers.push(user.id);
+          const userId = user?._id || user?.id;
+          if (userId && !nextMembers.includes(userId)) nextMembers.push(userId);
           return { ...c, members: nextMembers };
         }));
         toast.success('Joined community (demo)');
         return;
       }
-
-      // For auth errors, tell the user to sign in; otherwise show the returned error
       if (status === 401 || status === 403) {
         toast.error('Please sign in to join this community');
       } else {
@@ -119,8 +187,55 @@ const CommunityPage = ({ user, onLogout }) => {
     }
   };
 
-  const groups = communities.filter(c => c.type === 'group');
-  const challenges = communities.filter(c => c.type === 'challenge');
+  const exploreCommunity = async (communityId) => {
+    try {
+      const response = await axios.get(`${API}/communities/${communityId}`);
+      console.log('Community data:', response.data);
+      setSelectedCommunity(response.data);
+      setExploreDialogOpen(true);
+    } catch (error) {
+      console.error('Explore error:', error);
+      const community = communities.find(c => (c._id || c.id) === communityId);
+      if (community) {
+        setSelectedCommunity(community);
+        setExploreDialogOpen(true);
+        toast.info('Viewing community (offline mode)');
+      } else {
+        toast.error('Failed to load community details');
+      }
+    }
+  };
+
+  const isJoinedCommunity = (community) => {
+    const userId = user?._id || user?.id;
+    const communityId = community._id || community.id;
+    if (!userId || !community.members) return false;
+    
+    const isMember = community.members.some(m => {
+      const memberId = typeof m === 'object' ? m._id : m;
+      return memberId?.toString() === userId?.toString();
+    });
+    
+    return isMember || demoJoined.has(communityId);
+  };
+
+  const [allChallenges, setAllChallenges] = useState([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
+
+  useEffect(() => {
+    fetchChallenges();
+  }, []);
+
+  const fetchChallenges = async () => {
+    try {
+      const response = await axios.get(`${API}/challenges`);
+      setAllChallenges(response.data);
+    } catch (error) {
+      console.error('Failed to load challenges:', error);
+    } finally {
+      setChallengesLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -140,8 +255,9 @@ const CommunityPage = ({ user, onLogout }) => {
             <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Community</h1>
             <p className="text-slate-600 mt-1">Connect with others on their habit journey</p>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
+          <div className="flex gap-3">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
                 <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="create-community-btn">
                   <Plus className="w-4 h-4" />
                   Create Community
@@ -180,47 +296,189 @@ const CommunityPage = ({ user, onLogout }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Type</Label>
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant={formData.type === 'group' ? 'default' : 'outline'}
-                      onClick={() => setFormData({...formData, type: 'group'})}
-                      className="flex-1"
-                      data-testid="type-group"
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      Group
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={formData.type === 'challenge' ? 'default' : 'outline'}
-                      onClick={() => setFormData({...formData, type: 'challenge'})}
-                      className="flex-1"
-                      data-testid="type-challenge"
-                    >
-                      <Trophy className="w-4 h-4 mr-2" />
-                      Challenge
-                    </Button>
-                  </div>
+                  <Label htmlFor="category">Category</Label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="general">General</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="nutrition">Nutrition</option>
+                    <option value="mindfulness">Mindfulness</option>
+                    <option value="productivity">Productivity</option>
+                    <option value="learning">Learning</option>
+                    <option value="social">Social</option>
+                  </select>
                 </div>
                 <div className="flex items-center gap-3">
                   <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
                   <Button type="submit" className="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="submit-community-btn" disabled={!formData.name.trim()}>Create Community</Button>
                 </div>
-                {/** inline feedback for demo creations when user is not signed in or backend fails */}
                 {(!user?.id) && (
                   <div className="text-xs text-amber-600 mt-2">You're currently unsigned — communities will be created in demo mode and stored locally.</div>
                 )}
               </form>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={challengeDialogOpen} onOpenChange={setChallengeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2 bg-yellow-600 hover:bg-yellow-700 text-white">
+                <Trophy className="w-4 h-4" />
+                Create Challenge
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-white text-slate-900 rounded-lg shadow-xl border border-slate-200 w-[580px] max-w-full">
+              <DialogHeader>
+                <DialogTitle>Create New Challenge</DialogTitle>
+                <DialogDescription>Create a time-bound challenge within a community</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleChallengeSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="challenge-title">Challenge Title</Label>
+                  <Input
+                    id="challenge-title"
+                    placeholder="e.g., 30-Day Fitness Challenge"
+                    value={challengeData.title}
+                    onChange={(e) => setChallengeData({...challengeData, title: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="challenge-description">Description</Label>
+                  <Textarea
+                    id="challenge-description"
+                    placeholder="What's this challenge about?"
+                    value={challengeData.description}
+                    onChange={(e) => setChallengeData({...challengeData, description: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="challenge-community">Community / Studio</Label>
+                  <select
+                    id="challenge-community"
+                    value={challengeData.communityId}
+                    onChange={(e) => {
+                      console.log('Selected value:', e.target.value);
+                      setChallengeData({...challengeData, communityId: e.target.value});
+                    }}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    required
+                  >
+                    <option value="">Select a community or studio</option>
+                    <optgroup label="Communities (Backend)">
+                      {communities.map(community => {
+                        const userId = user?._id || user?.id;
+                        const creatorId = typeof community.creatorId === 'object' ? community.creatorId._id : community.creatorId;
+                        const isMember = community.members?.some(m => {
+                          const memberId = typeof m === 'object' ? m._id : m;
+                          return memberId?.toString() === userId?.toString();
+                        });
+                        const isCreator = creatorId?.toString() === userId?.toString();
+                        
+                        if (!isMember && !isCreator) return null;
+                        
+                        return (
+                          <option key={community._id} value={community._id}>
+                            {community.name}
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                    <optgroup label="Studios">
+                      {studios.map(studio => {
+                        const userId = user?._id || user?.id;
+                        const isMember = studio.members?.some(m => {
+                          const memberId = typeof m === 'object' ? m._id : m;
+                          return memberId?.toString() === userId?.toString();
+                        });
+                        
+                        if (!isMember) return null;
+                        
+                        return (
+                          <option key={studio._id} value={studio._id}>
+                            {studio.name} (Studio)
+                          </option>
+                        );
+                      })}
+                    </optgroup>
+                  </select>
+                  <p className="text-xs text-slate-500">You can only create challenges in communities/studios you're a member of</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="challenge-category">Category</Label>
+                    <select
+                      id="challenge-category"
+                      value={challengeData.category}
+                      onChange={(e) => setChallengeData({...challengeData, category: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    >
+                      <option value="fitness">Fitness</option>
+                      <option value="nutrition">Nutrition</option>
+                      <option value="mindfulness">Mindfulness</option>
+                      <option value="productivity">Productivity</option>
+                      <option value="learning">Learning</option>
+                      <option value="social">Social</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="challenge-difficulty">Difficulty</Label>
+                    <select
+                      id="challenge-difficulty"
+                      value={challengeData.difficulty}
+                      onChange={(e) => setChallengeData({...challengeData, difficulty: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="challenge-duration">Duration (days)</Label>
+                    <Input
+                      id="challenge-duration"
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={challengeData.duration}
+                      onChange={(e) => setChallengeData({...challengeData, duration: parseInt(e.target.value)})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="challenge-start">Start Date</Label>
+                    <Input
+                      id="challenge-start"
+                      type="date"
+                      value={challengeData.startDate}
+                      onChange={(e) => setChallengeData({...challengeData, startDate: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="ghost" onClick={() => setChallengeDialogOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="ml-auto bg-yellow-600 hover:bg-yellow-700 text-white" disabled={!challengeData.title.trim() || !challengeData.communityId}>Create Challenge</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+          </div>
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="feed" data-testid="feed-tab">Feed</TabsTrigger>
             <TabsTrigger value="groups" data-testid="groups-tab">Groups</TabsTrigger>
+            <TabsTrigger value="studios" data-testid="studios-tab">Studios</TabsTrigger>
             <TabsTrigger value="challenges" data-testid="challenges-tab">Challenges</TabsTrigger>
           </TabsList>
 
@@ -229,57 +487,118 @@ const CommunityPage = ({ user, onLogout }) => {
           </TabsContent>
 
           <TabsContent value="groups" className="mt-6">
-            {groups.length === 0 ? (
+            {/* My Groups Section */}
+            {(() => {
+              const joinedGroups = communities.filter(c => isJoinedCommunity(c));
+              return joinedGroups.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <Users className="w-6 h-6 text-emerald-600" />
+                    My Groups ({joinedGroups.length})
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {joinedGroups.map((community) => {
+                      const communityId = community._id || community.id;
+                      return (
+                        <Card key={communityId} className="card-hover shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 border-2 border-emerald-200 bg-gradient-to-br from-white to-emerald-50">
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Users className="w-5 h-5 text-emerald-600" />
+                              {community.name}
+                            </CardTitle>
+                            <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
+                            <Button
+                              variant="outline"
+                              className="w-full border-emerald-300 hover:bg-emerald-50 text-emerald-700"
+                              onClick={() => exploreCommunity(communityId)}
+                            >
+                              Explore Group
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* All Communities Section */}
+            <h3 className="text-xl font-bold text-slate-800 mb-4">All Communities</h3>
+            {communities.length === 0 ? (
               <Card>
                 <CardContent className="py-12">
                   <div className="text-center">
                     <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No groups yet</h3>
-                    <p className="text-slate-500 mb-4">Be the first to create one!</p>
+                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No communities yet</h3>
+                    <p className="text-slate-500 mb-4">Create your first community!</p>
                   </div>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {groups.map((community) => (
-                      <Card key={community.id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${community.id}`}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Users className="w-5 h-5 text-emerald-600" />
-                        {community.name}
-                      </CardTitle>
-                      <CardDescription>{community.members?.length ?? 0} members</CardDescription>
-                    </CardHeader>
-                      <CardContent>
-                      <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                      {(() => {
-                        const isJoined = (user?.id && community.members.includes(user.id)) || demoJoined.has(community.id);
-                        return (
+                {communities.map((community) => {
+                  const communityId = community._id || community.id;
+                  const isJoined = isJoinedCommunity(community);
+                  return (
+                    <Card key={communityId} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${communityId}`}>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Users className="w-5 h-5 text-emerald-600" />
+                          {community.name}
+                        </CardTitle>
+                        <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
+                        {isJoined ? (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              className="flex-1 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
+                              onClick={() => exploreCommunity(communityId)}
+                            >
+                              Explore
+                            </Button>
+                            <Button
+                              variant="outline"
+                              disabled
+                              className="flex-1 opacity-70 cursor-not-allowed"
+                            >
+                              Joined ✓
+                            </Button>
+                          </div>
+                        ) : (
                           <Button
-                            onClick={() => handleJoin(community.id)}
-                            variant={isJoined ? 'outline' : 'default'}
-                            className={`w-full transition-colors duration-150 ${!isJoined ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
-                            disabled={isJoined}
-                            data-testid={`join-community-${community.id}`}
+                            onClick={() => handleJoin(communityId)}
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-150"
+                            data-testid={`join-community-${communityId}`}
                           >
-                            {isJoined ? 'Joined' : (
-                              <>
-                                <UserPlus className="w-4 h-4 mr-2" />
-                                Join Group
-                              </>
-                            )}
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Join Group
                           </Button>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
-                ))}
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </TabsContent>
 
+          <TabsContent value="studios" className="mt-6">
+            <StudioHub user={user} />
+          </TabsContent>
+
           <TabsContent value="challenges" className="mt-6">
-            {challenges.length === 0 ? (
+            {challengesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+              </div>
+            ) : allChallenges.length === 0 ? (
               <Card>
                 <CardContent className="py-12">
                   <div className="text-center">
@@ -291,41 +610,219 @@ const CommunityPage = ({ user, onLogout }) => {
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {challenges.map((community) => (
-                  <Card key={community.id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`challenge-${community.id}`}>
+                {allChallenges.map((challenge) => {
+                  const isParticipating = challenge.participants?.some(p => p.userId === user?.id || p.userId?._id === user?.id);
+                  const daysLeft = Math.ceil((new Date(challenge.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+                  return (
+                  <Card key={challenge._id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`challenge-${challenge._id}`}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Trophy className="w-5 h-5 text-yellow-600" />
-                        {community.name}
+                        {challenge.title}
                       </CardTitle>
-                      <CardDescription>{community.members?.length ?? 0} participants</CardDescription>
+                      <CardDescription className="flex items-center justify-between">
+                        <span>{challenge.participantCount || 0} participants</span>
+                        <Badge variant="outline" className="text-xs">{challenge.difficulty}</Badge>
+                      </CardDescription>
                     </CardHeader>
                       <CardContent>
-                      <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                      {(() => {
-                        const isPart = community.members.includes(user.id);
-                        return (
-                          <Button
-                            onClick={() => handleJoin(community.id)}
-                            variant={isPart ? 'outline' : 'default'}
-                            className={`w-full ${!isPart ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
-                            disabled={isPart}
-                            data-testid={`join-challenge-${community.id}`}
-                          >
-                            {isPart ? 'Participating' : 'Join Challenge'}
-                          </Button>
-                        );
-                      })()}
+                      <p className="text-sm text-slate-600 mb-2">{challenge.description || 'No description'}</p>
+                      <div className="flex items-center justify-between text-xs text-slate-500 mb-4">
+                        <span>📅 {challenge.duration} days</span>
+                        <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}</span>
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          try {
+                            await axios.post(`${API}/challenges/${challenge._id}/join`);
+                            toast.success('Joined challenge!');
+                            fetchChallenges();
+                          } catch (error) {
+                            toast.error(error.response?.data?.message || 'Failed to join challenge');
+                          }
+                        }}
+                        variant={isParticipating ? 'outline' : 'default'}
+                        className={`w-full ${!isParticipating ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : ''}`}
+                        disabled={isParticipating || daysLeft < 0}
+                        data-testid={`join-challenge-${challenge._id}`}
+                      >
+                        {isParticipating ? '✓ Participating' : daysLeft < 0 ? 'Challenge Ended' : 'Join Challenge'}
+                      </Button>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
         </Tabs>
-        <div className="mt-8">
-          <StudioHub user={user} />
-        </div>
+
+        {/* Explore Community Dialog */}
+        <Dialog open={exploreDialogOpen} onOpenChange={setExploreDialogOpen}>
+          <DialogContent className="bg-gradient-to-br from-white to-slate-50 text-slate-900 rounded-2xl shadow-2xl border-0 w-[650px] max-w-full max-h-[85vh] overflow-y-auto">
+            {selectedCommunity ? (
+              <>
+                <DialogHeader className="pb-4 border-b border-slate-200">
+                  <DialogTitle className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent" style={{fontFamily: 'Space Grotesk'}}>
+                    {selectedCommunity.name}
+                  </DialogTitle>
+                  <DialogDescription className="text-slate-600 text-base mt-2">
+                    {selectedCommunity.description}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-6 mt-6">
+                {/* Community Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Card className="p-5 bg-gradient-to-br from-emerald-50 to-emerald-100 border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-3xl font-bold text-emerald-700 group-hover:text-emerald-800 transition-colors">{selectedCommunity.members?.length || 1}</div>
+                        <div className="text-sm text-slate-600 font-medium mt-1">Members</div>
+                      </div>
+                      <Users className="w-10 h-10 text-emerald-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </Card>
+                  <Card className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 border-0 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer group">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xl font-bold text-blue-700 capitalize group-hover:text-blue-800 transition-colors">{selectedCommunity.category || 'Social'}</div>
+                        <div className="text-sm text-slate-600 font-medium mt-1">Category</div>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 text-lg font-bold group-hover:bg-blue-300 transition-colors">
+                        {(selectedCommunity.category || 'Social').charAt(0).toUpperCase()}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+
+                {/* Community Members Preview */}
+                <Card className="p-5 bg-white border border-slate-200 shadow-md hover:shadow-lg transition-shadow duration-200">
+                  <h4 className="font-bold text-slate-800 mb-4 text-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-emerald-600" />
+                    Community Members
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedCommunity.members?.slice(0, 8).map((member, idx) => (
+                      <div 
+                        key={idx}
+                        className="px-4 py-2 bg-gradient-to-r from-slate-100 to-slate-200 rounded-full text-sm font-medium text-slate-700 hover:from-emerald-100 hover:to-emerald-200 hover:text-emerald-800 transition-all duration-200 cursor-pointer shadow-sm hover:shadow-md transform hover:scale-105"
+                      >
+                        {typeof member === 'object' ? (member.name || member.username || 'Member') : 'Member'}
+                      </div>
+                    ))}
+                    {selectedCommunity.members?.length > 8 && (
+                      <div className="px-4 py-2 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-full text-sm font-bold text-emerald-700 shadow-sm">
+                        +{selectedCommunity.members.length - 8} more
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                {/* Recommendations Section */}
+                <Card className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 border-0 shadow-md">
+                  <h4 className="font-bold text-slate-800 mb-4 text-lg">Recommendations</h4>
+                  <div className="space-y-3">
+                    {['Morning Risers', 'Focus Hour', 'Evening Walkers'].map((rec, idx) => {
+                      const recCommunity = communities.find(c => c.name === rec);
+                      const isJoined = recCommunity && isJoinedCommunity(recCommunity);
+                      return (
+                      <div 
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-white rounded-xl hover:shadow-md transition-all duration-200 cursor-pointer group border border-slate-100 hover:border-purple-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white font-bold shadow-md">
+                            {rec.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-slate-800 group-hover:text-purple-700 transition-colors">{rec}</div>
+                            <div className="text-xs text-slate-500">
+                              {idx === 0 ? 'Early morning routine builders' : idx === 1 ? 'Deep work and Pomodoro' : 'Casual evening walks and steps'}
+                            </div>
+                          </div>
+                        </div>
+                        {isJoined ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            disabled
+                            className="px-4 opacity-70 cursor-not-allowed"
+                          >
+                            Joined ✓
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            onClick={() => recCommunity && handleJoin(recCommunity._id || recCommunity.id)}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200 px-4"
+                          >
+                            Join
+                          </Button>
+                        )}
+                      </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                {/* Communities to Explore */}
+                <Card className="p-5 bg-white border border-slate-200 shadow-md">
+                  <h4 className="font-bold text-slate-800 mb-4 text-lg">Communities to explore</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { name: 'Morning Risers', tag: 'group', color: 'from-orange-400 to-amber-400' },
+                      { name: '30-Day Fitness', tag: 'challenge', color: 'from-blue-400 to-cyan-400' }
+                    ].map((comm, idx) => {
+                      const foundCommunity = communities.find(c => c.name === comm.name);
+                      const isJoined = foundCommunity && isJoinedCommunity(foundCommunity);
+                      return (
+                      <div 
+                        key={idx}
+                        className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl hover:shadow-lg transition-all duration-200 cursor-pointer border border-slate-200 hover:border-slate-300 group"
+                      >
+                        <div className="font-semibold text-slate-800 mb-2 group-hover:text-emerald-700 transition-colors">{comm.name}</div>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${comm.color} text-white font-bold shadow-sm`}>
+                            {comm.tag}
+                          </span>
+                          {isJoined ? (
+                            <Button size="sm" variant="ghost" disabled className="text-slate-500 px-3 opacity-70 cursor-not-allowed">
+                              Joined ✓
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={() => foundCommunity && handleJoin(foundCommunity._id || foundCommunity.id)}
+                              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors px-3"
+                            >
+                              Join
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+
+                <Button 
+                  onClick={() => setExploreDialogOpen(false)}
+                  className="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 text-base font-semibold"
+                >
+                  Close
+                </Button>
+              </div>
+              </>
+            ) : (
+              <div className="p-12 text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+                <p className="text-slate-600">Loading community details...</p>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
