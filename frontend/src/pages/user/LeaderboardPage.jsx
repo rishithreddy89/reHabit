@@ -17,10 +17,15 @@ const LeaderboardPage = ({ user, onLogout }) => {
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await axios.get(`${API}/leaderboard`);
+      const token = localStorage.getItem('token');
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      
+      const response = await axios.get(`${API}/leaderboard`, config);
       setLeaderboard(response.data);
     } catch (error) {
-      toast.error('Failed to load leaderboard');
+      console.error('Leaderboard load error:', error);
+      // Silently handle error - leaderboard will show empty
+      setLeaderboard([]);
     } finally {
       setLoading(false);
     }

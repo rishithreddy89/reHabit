@@ -24,4 +24,15 @@ router.post('/chat', protect, async (req, res) => {
   }
 });
 
+// GET /api/ai/insights - simple placeholder insights endpoint
+router.get('/insights', protect, async (req, res) => {
+  try {
+    // Placeholder logic; in future, aggregate user habits/challenges for personalized insights.
+    res.json({ insights: 'Stay consistent! Small daily actions compound into big results.' });
+  } catch (error) {
+    console.error('AI insights error:', error);
+    res.status(500).json({ message: 'Failed to generate insights' });
+  }
+});
+
 module.exports = router;
