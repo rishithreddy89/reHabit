@@ -7,10 +7,13 @@ import { Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
+import ChatBox from '@/components/ChatBox';
+import { MessageCircle } from 'lucide-react';
 
 const ClientManagement = ({ user, onLogout }) => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedClient, setSelectedClient] = useState(null);
 
   useEffect(() => {
     fetchClients();
@@ -56,36 +59,67 @@ const ClientManagement = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clients.map((client) => (
-              <Card key={client._id || client.id} className="card-hover" data-testid={`client-card-${client._id || client.id}`}>
-                <CardHeader>
-                  <CardTitle>{client.name}</CardTitle>
-                  <CardDescription>{client.email}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-600">Level</span>
-                      <span className="font-semibold text-slate-800">{client.level}</span>
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Clients Grid */}
+            <div className="grid md:grid-cols-1 gap-4">
+              {clients.map((client) => (
+                <Card key={client._id || client.id} className="card-hover" data-testid={`client-card-${client._id || client.id}`}>
+                  <CardHeader>
+                    <CardTitle>{client.name}</CardTitle>
+                    <CardDescription>{client.email}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Level</span>
+                        <span className="font-semibold text-slate-800">{client.level}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Total XP</span>
+                        <span className="font-semibold text-slate-800">{client.xp}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Streak</span>
+                        <span className="font-semibold text-slate-800">{client.streak} days</span>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-600">Total XP</span>
-                      <span className="font-semibold text-slate-800">{client.xp}</span>
+                    <div className="flex gap-2">
+                      <Link to={`/mentor/client/${client._id || client.id}`} className="flex-1">
+                        <button className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition-colors" data-testid={`view-client-${client._id || client.id}`}>
+                          View Progress
+                        </button>
+                      </Link>
+                      <button
+                        onClick={() => setSelectedClient(client)}
+                        className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
+                        data-testid={`chat-client-${client._id || client.id}`}
+                      >
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Chat
+                      </button>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-600">Streak</span>
-                      <span className="font-semibold text-slate-800">{client.streak} days</span>
-                    </div>
-                  </div>
-                  <Link to={`/mentor/client/${client._id || client.id}`}>
-                    <button className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition-colors" data-testid={`view-client-${client._id || client.id}`}>
-                      View Progress
-                    </button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Chat Panel */}
+            <div className="lg:sticky lg:top-6 lg:h-fit">
+              {selectedClient ? (
+                <ChatBox
+                  currentUser={user}
+                  otherUser={selectedClient}
+                  requestStatus="accepted"
+                />
+              ) : (
+                <Card className="bg-slate-50">
+                  <CardContent className="py-16 text-center">
+                    <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                    <p className="text-slate-500">Select a client to start chatting</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         )}
       </div>

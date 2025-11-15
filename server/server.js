@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -142,6 +144,7 @@ import aiRoutes from './routes/ai.js';
 import postRoutes from './routes/posts.js';
 import socialRoutes from './routes/social.js';
 import mentorPlanRoutes from './routes/mentorPlans.js';
+import chatRoutes from './routes/chat.js';
 
 // Mount routes (use the imported ESM route variables — do not re-require)
 app.use('/api/auth', authRoutes);
@@ -158,7 +161,19 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/social', socialRoutes);
-app.use('/api/mentor-plans', mentorPlanRoutes);
+app.use('/api/chat', chatRoutes);
+
+// Create HTTP server for Socket.IO
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: devReflectOrigin ? true : CORS_ORIGIN,
+    credentials: true
+  }
+});
+
+// expose io on express app so controllers can emit without circular imports
+app.set('io', io);
 
 // API route for admin analytics
 app.get('/api/admin/analytics', async (req, res) => {
@@ -188,16 +203,61 @@ process.on('uncaughtException', (err) => {
   // in production you might process.exit(1) after cleanup
 });
 
+// Socket.IO connection handling
+const onlineUsers = new Map();
+
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('user_online', (userId) => {
+    onlineUsers.set(userId, socket.id);
+    socket.broadcast.emit('user_status', { userId, status: 'online' });
+  });
+
+  socket.on('join_chat', ({ userId, otherUserId }) => {
+    const room = [userId, otherUserId].sort().join('_');
+    socket.join(room);
+    console.log(`User ${userId} joined room ${room}`);
+  });
+
+  socket.on('send_message', (data) => {
+    const room = [data.senderId, data.receiverId].sort().join('_');
+    io.to(room).emit('receive_message', data);
+  });
+
+  socket.on('typing', ({ senderId, receiverId }) => {
+    const room = [senderId, receiverId].sort().join('_');
+    socket.to(room).emit('user_typing', { userId: senderId });
+  });
+
+  socket.on('stop_typing', ({ senderId, receiverId }) => {
+    const room = [senderId, receiverId].sort().join('_');
+    socket.to(room).emit('user_stop_typing', { userId: senderId });
+  });
+
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) {
+        onlineUsers.delete(userId);
+        socket.broadcast.emit('user_status', { userId, status: 'offline' });
+        break;
+      }
+    }
+    console.log('User disconnected:', socket.id);
+  });
+});
+
 // Start server with a small port-fallback strategy to avoid crashing on EADDRINUSE
 async function startServer(preferredPort = PORT, maxRetries = 5) {
   let port = preferredPort;
   const tryListen = () => {
-    const server = app.listen(port, () => {
+    httpServer.listen(port, () => {
       console.log(`Server running at http://localhost:${port}`);
       console.log(`CORS origin allowed: ${CORS_ORIGIN}`);
+      console.log(`Socket.IO ready for connections`);
     });
 
-    server.on('error', (err) => {
+    httpServer.on('error', (err) => {
       if (err && err.code === 'EADDRINUSE') {
         console.warn(`Port ${port} in use.`);
         if (port < preferredPort + maxRetries) {
@@ -219,4 +279,5 @@ connectDb().then(() => startServer()).catch((err) => {
   console.error('Failed to connect DB or start server:', err);
 });
 
+export { io };
 export default app;
