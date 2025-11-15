@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const completionSchema = new mongoose.Schema({
   habitId: { type: mongoose.Schema.Types.ObjectId, ref: 'Habit', required: true },
@@ -18,4 +18,5 @@ const completionSchema = new mongoose.Schema({
 completionSchema.index({ habitId: 1, completedAt: -1 });
 completionSchema.index({ userId: 1, completedAt: -1 });
 
-module.exports = mongoose.model('Completion', completionSchema);
+const Completion = mongoose.model('Completion', completionSchema);
+export default Completion;

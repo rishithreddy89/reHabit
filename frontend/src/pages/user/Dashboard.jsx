@@ -9,8 +9,15 @@ import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
+<<<<<<< HEAD
 import LevelUpAnimation from '@/components/LevelUpAnimation';
 
+=======
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
+const API = `${BACKEND_URL}/api`;
+>>>>>>> 1dfbc20e9e2cba9087d74f2944e33af01ded8b20
 import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
@@ -292,6 +299,17 @@ const UserDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Analytics Demo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics Preview</CardTitle>
+            <CardDescription>Demo analytics powered by mock data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AnalyticsDashboard demo={true} />
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );

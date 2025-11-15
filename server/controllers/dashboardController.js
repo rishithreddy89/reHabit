@@ -1,13 +1,14 @@
-const Habit = require('../models/Habit');
-const Completion = require('../models/Completion');
+import Habit from '../models/Habit.js';
+import Completion from '../models/Completion.js';
 let User = null;
 try {
-  User = require('../models/User');
+  const userModule = await import('../models/User.js');
+  User = userModule.default;
 } catch (e) {
   // User model may not exist in this project; that's fine — fallback will be used
 }
 
-exports.getUserStats = async (req, res) => {
+const getUserStats = async (req, res) => {
   try {
     const userId = req.user._id;
 
@@ -35,7 +36,7 @@ exports.getUserStats = async (req, res) => {
   }
 };
 
-exports.getLeaderboard = async (req, res) => {
+const getLeaderboard = async (req, res) => {
   try {
     // Aggregate completions per user to produce a simple leaderboard
     const agg = await Completion.aggregate([
@@ -75,7 +76,7 @@ exports.getLeaderboard = async (req, res) => {
   }
 };
 
-exports.getAIInsights = async (req, res) => {
+const getAIInsights = async (req, res) => {
   try {
     const userId = req.user._id;
 
@@ -112,4 +113,10 @@ exports.getAIInsights = async (req, res) => {
     console.error('getAIInsights error:', error);
     return res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  getUserStats,
+  getLeaderboard,
+  getAIInsights
 };

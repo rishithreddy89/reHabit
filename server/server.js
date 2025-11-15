@@ -1,18 +1,16 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import morgan from 'morgan';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
-// try to load optional morgan logger
-let morgan = null;
-try {
-  morgan = require('morgan');
-} catch (err) {
-  console.warn('Optional dependency "morgan" not found. Install with "npm install morgan" to enable request logging.');
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-require('dotenv').config();
+dotenv.config();
 
 const app = express();
 
@@ -69,7 +67,7 @@ if (morgan) {
   });
 }
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 // fail-fast: disable mongoose command buffering so operations error when no connection
 mongoose.set('bufferCommands', false);
@@ -99,16 +97,6 @@ mongoose.connection.on('connected', () => console.log('Mongoose connection state
 mongoose.connection.on('error', (err) => console.error('Mongoose connection error:', err && err.message));
 mongoose.connection.on('disconnected', () => console.warn('Mongoose connection state: disconnected'));
 
-const tryRequire = (candidate) => {
-  try {
-    const full = path.resolve(candidate);
-    if (fs.existsSync(full)) return require(full);
-  } catch (e) {
-    /* ignore */
-  }
-  return null;
-};
-
 async function gatherAnalytics() {
   const defaults = {
     total_users: 0,
@@ -117,41 +105,12 @@ async function gatherAnalytics() {
     total_completions: 0,
   };
 
-  // try common model locations relative to project
-  const candidates = [
-    path.join(__dirname, './models/User.js'),
-    path.join(__dirname, '../backend/models/User.js'),
-    path.join(__dirname, '../models/User.js'),
-  ];
-  const User = candidates.map(tryRequire).find(Boolean);
-
-  const habitCandidates = [
-    path.join(__dirname, './models/Habit.js'),
-    path.join(__dirname, '../backend/models/Habit.js'),
-    path.join(__dirname, '../models/Habit.js'),
-  ];
-  const Habit = habitCandidates.map(tryRequire).find(Boolean);
-
-  const communityCandidates = [
-    path.join(__dirname, './models/Community.js'),
-    path.join(__dirname, '../backend/models/Community.js'),
-    path.join(__dirname, '../models/Community.js'),
-  ];
-  const Community = communityCandidates.map(tryRequire).find(Boolean);
-
-  const completionCandidates = [
-    path.join(__dirname, './models/Completion.js'),
-    path.join(__dirname, '../backend/models/Completion.js'),
-    path.join(__dirname, '../models/Completion.js'),
-  ];
-  const Completion = completionCandidates.map(tryRequire).find(Boolean);
-
   try {
     const promises = [
-      User ? User.countDocuments().exec() : Promise.resolve(0),
-      Habit ? Habit.countDocuments().exec() : Promise.resolve(0),
-      Community ? Community.countDocuments().exec() : Promise.resolve(0),
-      Completion ? Completion.countDocuments().exec() : Promise.resolve(0),
+      User.countDocuments().exec(),
+      Habit.countDocuments().exec(),
+      Community.countDocuments().exec(),
+      Completion.countDocuments().exec(),
     ];
 
     const [total_users, total_habits, total_communities, total_completions] = await Promise.all(promises);
@@ -163,17 +122,33 @@ async function gatherAnalytics() {
   }
 }
 
-// mount auth routes
-const authRoutes = require('./routes/auth');
+// Import models for analytics
+import User from './models/User.js';
+import Habit from './models/Habit.js';
+import Community from './models/Community.js';
+import Completion from './models/Completion.js';
+
+// Import routes
+import authRoutes from './routes/auth.js';
+import habitRoutes from './routes/habits.js';
+import communityRoutes from './routes/communities.js';
+import challengeRoutes from './routes/challenges.js';
+import mentorRoutes from './routes/mentor.js';
+import adminRoutes from './routes/admin.js';
+import badgesRoutes from './routes/badges.js';
+import userRoutes from './routes/users.js';
+import leaderboardRoutes from './routes/leaderboard.js';
+import aiRoutes from './routes/ai.js';
+import postRoutes from './routes/posts.js';
+import socialRoutes from './routes/social.js';
+
+// Mount routes
 app.use('/api/auth', authRoutes);
 
 
 // mount habit routes
 const habitRoutes = require('./routes/habits');
 app.use('/api/habits', habitRoutes);
-
-// mount community routes
-const communityRoutes = require('./routes/communities');
 app.use('/api/communities', communityRoutes);
 
 // mount badges routes
@@ -189,22 +164,13 @@ const mentorRoutes = require('./routes/mentor');
 app.use('/api/mentors', mentorRoutes);
 // add backward-compatible alias for older frontend calls that used singular "mentor"
 app.use('/api/mentor', mentorRoutes);
-
-// mount admin routes
-const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
-
-// mount AI routes
-const aiRoutes = require('./routes/ai');
-app.use('/api/ai', aiRoutes);
-
-// mount user stats routes (was missing, caused 404 on /api/users/stats)
-const userRoutes = require('./routes/users');
+app.use('/api/badges', badgesRoutes);
 app.use('/api/users', userRoutes);
-
-// mount leaderboard routes (was missing, caused 404 on /api/leaderboard)
-const leaderboardRoutes = require('./routes/leaderboard');
 app.use('/api/leaderboard', leaderboardRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/social', socialRoutes);
 
 // API route for admin analytics
 app.get('/api/admin/analytics', async (req, res) => {
@@ -234,11 +200,35 @@ process.on('uncaughtException', (err) => {
   // in production you might process.exit(1) after cleanup
 });
 
-connectDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`CORS origin allowed: ${CORS_ORIGIN}`);
-  });
+// Start server with a small port-fallback strategy to avoid crashing on EADDRINUSE
+async function startServer(preferredPort = PORT, maxRetries = 5) {
+  let port = preferredPort;
+  const tryListen = () => {
+    const server = app.listen(port, () => {
+      console.log(`Server running at http://localhost:${port}`);
+      console.log(`CORS origin allowed: ${CORS_ORIGIN}`);
+    });
+
+    server.on('error', (err) => {
+      if (err && err.code === 'EADDRINUSE') {
+        console.warn(`Port ${port} in use.`);
+        if (port < preferredPort + maxRetries) {
+          port += 1;
+          console.warn(`Trying port ${port}...`);
+          setTimeout(tryListen, 200);
+          return;
+        }
+      }
+      console.error('Server failed to start:', err);
+      process.exit(1);
+    });
+  };
+
+  tryListen();
+}
+
+connectDb().then(() => startServer()).catch((err) => {
+  console.error('Failed to connect DB or start server:', err);
 });
 
-module.exports = app;
+export default app;

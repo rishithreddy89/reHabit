@@ -1,7 +1,9 @@
-const User = require('../models/User');
-const Habit = require('../models/Habit');
-const Completion = require('../models/Completion');
-const MentorRequest = require('../models/MentorRequest');
+import User from '../models/User.js';
+import Habit from '../models/Habit.js';
+import Completion from '../models/Completion.js';
+import MentorAssignment from '../models/MentorAssignment.js';
+import Message from '../models/Message.js';
+import MentorRequest from '../models/MentorRequest.js';
 
 // Calculate distance between two coordinates (Haversine formula)
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -16,7 +18,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 // GET /api/mentors - List all mentors with filters
-exports.getAllMentors = async (req, res) => {
+const getAllMentors = async (req, res) => {
   try {
     const { category, rating, distance, search, online, lat, lng } = req.query;
 
@@ -87,7 +89,7 @@ exports.getAllMentors = async (req, res) => {
 };
 
 // GET /api/mentors/nearby - Get nearby mentors
-exports.getNearbyMentors = async (req, res) => {
+const getNearbyMentors = async (req, res) => {
   try {
     const { lat, lng, radius = 50 } = req.query;
 
@@ -125,7 +127,7 @@ exports.getNearbyMentors = async (req, res) => {
 };
 
 // GET /api/mentors/:mentorId - Get mentor profile
-exports.getMentorProfile = async (req, res) => {
+const getMentorProfile = async (req, res) => {
   try {
     const mentor = await User.findById(req.params.mentorId)
       .select('-password')
@@ -151,7 +153,7 @@ exports.getMentorProfile = async (req, res) => {
 };
 
 // POST /api/mentors/:mentorId/request - Send mentor request
-exports.sendMentorRequest = async (req, res) => {
+const sendMentorRequest = async (req, res) => {
   try {
     const { message } = req.body;
     const mentorId = req.params.mentorId;
@@ -196,7 +198,7 @@ exports.sendMentorRequest = async (req, res) => {
 };
 
 // GET /api/mentors/requests/sent - Get user's sent requests
-exports.getSentRequests = async (req, res) => {
+const getSentRequests = async (req, res) => {
   try {
     const requests = await MentorRequest.find({ userId: req.user._id })
       .populate('mentorId', 'name email avatar bio mentorProfile')
@@ -212,7 +214,7 @@ exports.getSentRequests = async (req, res) => {
 };
 
 // GET /api/mentors/requests/received - Get mentor's received requests
-exports.getReceivedRequests = async (req, res) => {
+const getReceivedRequests = async (req, res) => {
   try {
     // Current user must be a mentor
     const mentor = await User.findById(req.user._id);
@@ -234,7 +236,7 @@ exports.getReceivedRequests = async (req, res) => {
 };
 
 // POST /api/mentors/requests/:requestId/accept - Accept mentor request
-exports.acceptRequest = async (req, res) => {
+const acceptRequest = async (req, res) => {
   try {
     const request = await MentorRequest.findById(req.params.requestId);
     if (!request) {
@@ -280,7 +282,7 @@ exports.acceptRequest = async (req, res) => {
 };
 
 // POST /api/mentors/requests/:requestId/reject - Reject mentor request
-exports.rejectRequest = async (req, res) => {
+const rejectRequest = async (req, res) => {
   try {
     const request = await MentorRequest.findById(req.params.requestId);
     if (!request) {
@@ -310,7 +312,7 @@ exports.rejectRequest = async (req, res) => {
 };
 
 // GET /api/mentors/leaderboard - Mentor leaderboard
-exports.getMentorLeaderboard = async (req, res) => {
+const getMentorLeaderboard = async (req, res) => {
   try {
     const { sortBy = 'rating' } = req.query;
 
@@ -332,16 +334,16 @@ exports.getMentorLeaderboard = async (req, res) => {
 };
 
 // Placeholder for review system
-exports.submitReview = async (req, res) => {
+const submitReview = async (req, res) => {
   res.status(501).json({ message: 'Reviews feature coming soon' });
 };
 
-exports.getMentorReviews = async (req, res) => {
+const getMentorReviews = async (req, res) => {
   res.json({ reviews: [], total: 0, page: 1, pages: 0 });
 };
 
 // Placeholder for client management
-exports.getMyClients = async (req, res) => {
+const getMyClients = async (req, res) => {
   try {
     const mentorProfile = await Mentor.findOne({ userId: req.user._id });
     if (!mentorProfile) {
@@ -380,7 +382,7 @@ exports.getMyClients = async (req, res) => {
   }
 };
 
-exports.getClientDetails = async (req, res) => {
+const getClientDetails = async (req, res) => {
   try {
     const clientId = req.params.userId;
     
@@ -453,15 +455,38 @@ exports.getClientDetails = async (req, res) => {
   }
 };
 
-exports.sendMessage = async (req, res) => {
-  res.status(501).json({ message: 'Messaging coming soon' });
+const sendMessage = async (req, res) => {
+  try {
+    const { receiverId, content } = req.body;
+
+    const message = await Message.create({
+      senderId: req.user._id,
+      receiverId,
+      content
+    });
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-exports.getMessages = async (req, res) => {
-  res.json([]);
+const getMessages = async (req, res) => {
+  try {
+    const messages = await Message.find({
+      $or: [
+        { senderId: req.user._id, receiverId: req.params.userId },
+        { senderId: req.params.userId, receiverId: req.user._id }
+      ]
+    }).sort({ createdAt: 1 });
+
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
-exports.getMentorAnalytics = async (req, res) => {
+const getMentorAnalytics = async (req, res) => {
   try {
     const mentor = await User.findById(req.user._id);
     const acceptedRequests = await MentorRequest.countDocuments({
@@ -478,4 +503,23 @@ exports.getMentorAnalytics = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  getAllMentors,
+  getNearbyMentors,
+  getMentorProfile,
+  sendMentorRequest,
+  getSentRequests,
+  getReceivedRequests,
+  acceptRequest,
+  rejectRequest,
+  getMentorLeaderboard,
+  submitReview,
+  getMentorReviews,
+  getMyClients,
+  getClientDetails,
+  sendMessage,
+  getMessages,
+  getMentorAnalytics
 };

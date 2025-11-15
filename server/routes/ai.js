@@ -1,7 +1,9 @@
-const express = require('express');
+import express from 'express';
+import dashboard from '../controllers/dashboardController.js';
+import { protect } from '../middleware/auth.js';
+import { getChatResponse } from '../services/aiService.js';
+
 const router = express.Router();
-const { getChatResponse } = require('../services/aiService');
-const { protect } = require('../middleware/auth');
 
 // POST /api/ai/chat - AI Chatbot endpoint
 router.post('/chat', protect, async (req, res) => {
@@ -35,4 +37,4 @@ router.get('/insights', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import mentorController from '../controllers/mentorController.js';
+import { protect, restrictTo } from '../middleware/auth.js';
+
 const router = express.Router();
-const mentorController = require('../controllers/mentorController');
-const { protect, restrictTo } = require('../middleware/auth');
 
 // Public routes (specific routes first)
 router.get('/nearby', mentorController.getNearbyMentors);
@@ -30,4 +31,4 @@ router.get('/:mentorId/reviews', mentorController.getMentorReviews);
 router.post('/:mentorId/request', mentorController.sendMentorRequest);
 router.post('/:mentorId/review', mentorController.submitReview);
 
-module.exports = router;
+export default router;

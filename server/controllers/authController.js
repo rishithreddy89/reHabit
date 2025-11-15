@@ -1,3 +1,8 @@
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+import Mentor from '../models/Mentor.js';
+import Admin from '../models/Admin.js';
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
@@ -21,7 +26,7 @@ async function generateUsername(base) {
   return `${sanitized}${Date.now().toString().slice(-4)}`;
 }
 
-exports.register = async (req, res) => {
+const register = async (req, res) => {
   try {
     // fail fast if DB not connected
     if (mongoose.connection.readyState !== 1) {
@@ -78,7 +83,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+const login = async (req, res) => {
   try {
     // fail fast if DB not connected
     if (mongoose.connection.readyState !== 1) {
@@ -109,7 +114,7 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.getMe = async (req, res) => {
+const getMe = async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
       return res.status(503).json({ message: 'Database not connected', detail: 'Cannot fetch user while DB is unavailable.' });
@@ -124,8 +129,8 @@ exports.getMe = async (req, res) => {
   }
 };
 
-module.exports = {
-  register: exports.register,
-  login: exports.login,
-  getMe: exports.getMe
+export default {
+  register,
+  login,
+  getMe
 };
