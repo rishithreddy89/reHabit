@@ -1,374 +1,420 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Lock, CheckCircle, Crown, Zap, Sparkles, Trophy } from 'lucide-react';
+import { Star, Lock, CheckCircle, Trophy, Sparkles, Play, RotateCcw, Crown, Zap } from 'lucide-react';
+import LevelDetailModal from './LevelDetailModal';
 
-const LevelMap = ({ currentLevel = 13, maxLevel = 100 }) => {
+const LevelMap = ({ 
+  currentLevel = 1, 
+  maxLevel = 50, 
+  levels = [],
+  onLevelClick,
+  worldTheme = 'forest'
+}) => {
   const mapRef = useRef(null);
-  const [characterPosition, setCharacterPosition] = useState(currentLevel);
-  const [showLevelUpEffect, setShowLevelUpEffect] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState(null);
+  const [showLevelModal, setShowLevelModal] = useState(false);
 
-  // Auto-scroll to current level
-  useEffect(() => {
-    if (mapRef.current) {
-      const currentLevelElement = mapRef.current.querySelector(`[data-level="${currentLevel}"]`);
-      if (currentLevelElement) {
-        currentLevelElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  }, [currentLevel]);
+  // Theme configurations matching the beautiful game UI
+  const themes = {
+    forest: {
+      background: 'linear-gradient(180deg, #87CEEB 0%, #98D8C8 20%, #6BCB77 50%, #4D9F62 80%, #2D6A4F 100%)',
+      pathColor: '#FFE5B4',
+      decorations: ['🌲', '🌳', '🌴', '🍃', '🌿', '🦋', '🌺'],
+      waterColor: '#4A90E2'
+    },
+    ocean: {
+      background: 'linear-gradient(180deg, #E0F7FA 0%, #80DEEA 30%, #26C6DA 60%, #0097A7 100%)',
+      pathColor: '#FFE082',
+      decorations: ['🌊', '🐚', '🐠', '🐟', '🦀', '⛵', '🏝️'],
+      waterColor: '#00BCD4'
+    },
+    // ...existing theme code...
+  };
 
-  // Animate character movement when level changes
+  const currentTheme = themes[worldTheme] || themes.forest;
+
   useEffect(() => {
-    if (characterPosition < currentLevel) {
-      const interval = setInterval(() => {
-        setCharacterPosition(prev => {
-          if (prev >= currentLevel) {
-            clearInterval(interval);
-            setShowLevelUpEffect(true);
-            setTimeout(() => setShowLevelUpEffect(false), 2000);
-            return prev;
-          }
-          return prev + 1;
-        });
+    if (mapRef.current && currentLevel) {
+      setTimeout(() => {
+        const element = mapRef.current.querySelector(`[data-level="${currentLevel}"]`);
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 300);
-      return () => clearInterval(interval);
     }
   }, [currentLevel]);
 
-  // Generate path points for curved line (like Candy Crush)
-  const levels = Array.from({ length: maxLevel }, (_, i) => i + 1);
-  
-  // Create a zigzag pattern
+  // Generate path coordinates (winding river-like path)
   const getPosition = (level) => {
-    const row = Math.floor((level - 1) / 5);
-    const col = (level - 1) % 5;
-    const isEvenRow = row % 2 === 0;
+    const row = Math.floor((level - 1) / 3);
+    const col = (level - 1) % 3;
     
-    const x = isEvenRow ? col * 20 : (4 - col) * 20;
-    const y = row * 25;
+    // Create winding path
+    const xOffset = col === 1 ? 50 : (col === 0 ? 20 : 80);
+    const yPos = row * 180 + 100;
     
-    return { x: x + 10, y: y + 10 };
+    // Add wave effect
+    const wave = Math.sin(row * 0.5) * 15;
+    
+    return { x: xOffset + wave, y: yPos };
   };
 
-  const getLevelIcon = (level) => {
-    if (level % 25 === 0) return '👑';
-    if (level % 10 === 0) return '⚡';
-    if (level % 5 === 0) return '⭐';
-    return '🎯';
-  };
-
-  const getLevelColor = (level) => {
-    if (level > currentLevel) return 'from-slate-300 to-slate-400';
-    if (level === currentLevel) return 'from-purple-500 via-pink-500 to-purple-600';
-    if (level % 10 === 0) return 'from-yellow-400 via-orange-400 to-yellow-500';
-    return 'from-blue-400 via-cyan-400 to-blue-500';
-  };
-
-  const getMilestoneLabel = (level) => {
-    if (level === 5) return 'Newbie';
-    if (level === 10) return 'Beginner';
-    if (level === 25) return 'Intermediate';
-    if (level === 50) return 'Expert';
-    return null;
-  };
-
-  // Generate SVG path for curved connections
-  const generateCurvePath = (fromLevel, toLevel) => {
-    const from = getPosition(fromLevel);
-    const to = getPosition(toLevel);
+  const getLevelData = (levelNum) => {
+    const found = levels.find(l => l.levelNumber === levelNum);
+    if (found) return found;
     
-    const midX = (from.x + to.x) / 2;
-    const midY = (from.y + to.y) / 2;
-    const controlX = midX + (to.x - from.x) * 0.2;
-    const controlY = midY - 5;
-    
-    return `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;
+    return {
+      levelNumber: levelNum,
+      status: levelNum === 1 ? 'unlocked' : levelNum <= currentLevel ? 'completed' : 'locked',
+      stars: levelNum < currentLevel ? Math.floor(Math.random() * 3) + 1 : 0,
+      questId: null
+    };
+  };
+
+  const handleLevelClick = (levelData) => {
+    if (levelData.status !== 'locked') {
+      setSelectedLevel(levelData);
+      setShowLevelModal(true);
+      if (onLevelClick) onLevelClick(levelData);
+    }
+  };
+
+  const getLevelColor = (level, status) => {
+    if (status === 'locked') return 'from-gray-400 to-gray-500';
+    if (level === currentLevel) return 'from-purple-500 via-pink-500 to-orange-500';
+    if (status === 'completed') {
+      if (level % 10 === 0) return 'from-yellow-400 via-amber-400 to-orange-500';
+      return 'from-emerald-400 via-teal-400 to-cyan-500';
+    }
+    return 'from-blue-400 via-indigo-400 to-purple-500';
+  };
+
+  const getMilestoneIcon = (level) => {
+    if (level % 10 === 0) return <Crown className="w-8 h-8" />;
+    if (level % 5 === 0) return <Zap className="w-6 h-6" />;
+    return <Trophy className="w-5 h-5" />;
   };
 
   return (
-    <div 
-      className="relative w-full h-[900px] overflow-auto rounded-xl p-8" 
-      ref={mapRef}
-      style={{
-        background: 'linear-gradient(180deg, #dbeafe 0%, #e0e7ff 25%, #f3e8ff 50%, #fce7f3 75%, #ffe4e6 100%)',
-      }}
-    >
-      {/* Animated background clouds */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(8)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${(i * 15) % 100}%`,
-              top: `${(i * 100) % 80}%`,
-            }}
-            animate={{
-              x: [0, 30, 0],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 10 + i * 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <div className="text-6xl opacity-20">☁️</div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Floating stars decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute"
-            style={{
-              left: `${(i * 7) % 100}%`,
-              top: `${(i * 13) % 100}%`,
-            }}
-            animate={{
-              y: [-10, 10, -10],
-              rotate: [0, 180, 360],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 3 + i * 0.5,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            <Sparkles className="w-4 h-4 text-yellow-400 opacity-40" />
-          </motion.div>
-        ))}
-      </div>
-
-      <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
-        {/* Draw curved paths between levels */}
-        {levels.slice(0, -1).map((level) => {
-          const isCompleted = level < currentLevel;
-          return (
-            <motion.path
-              key={level}
-              d={generateCurvePath(level, level + 1)}
-              stroke={isCompleted ? '#3b82f6' : '#cbd5e1'}
-              strokeWidth="4"
-              fill="none"
-              strokeDasharray={isCompleted ? '0' : '10,5'}
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.5, delay: level * 0.05 }}
-            />
-          );
-        })}
-      </svg>
-
-      {/* Level nodes */}
-      <div className="relative" style={{ height: `${Math.ceil(maxLevel / 5) * 25 + 10}%` }}>
-        {levels.map((level) => {
-          const pos = getPosition(level);
-          const isLocked = level > currentLevel;
-          const isCurrent = level === currentLevel;
-          const isCompleted = level < currentLevel;
-          const isMilestone = level % 5 === 0;
-          const milestoneLabel = getMilestoneLabel(level);
-          const hasCharacter = level === characterPosition;
-
-          return (
+    <>
+      <div 
+        className="relative w-full h-[900px] overflow-auto rounded-3xl shadow-2xl" 
+        ref={mapRef}
+        style={{ background: currentTheme.background }}
+      >
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Trees and bushes */}
+          {[...Array(12)].map((_, i) => (
             <motion.div
-              key={level}
-              data-level={level}
+              key={`tree-${i}`}
+              className="absolute text-6xl opacity-40"
+              style={{
+                left: `${i % 2 === 0 ? 5 : 85}%`,
+                top: `${(i * 80) % 95}%`,
+              }}
+              animate={{
+                rotate: [-2, 2, -2],
+                scale: [1, 1.05, 1],
+              }}
+              transition={{
+                duration: 3 + i * 0.3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            >
+              {currentTheme.decorations[i % currentTheme.decorations.length]}
+            </motion.div>
+          ))}
+
+          {/* Floating sparkles */}
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={`sparkle-${i}`}
               className="absolute"
               style={{
-                left: `${pos.x}%`,
-                top: `${pos.y}%`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: isCurrent ? 10 : 5,
+                left: `${(i * 7 + 10) % 90}%`,
+                top: `${(i * 11) % 100}%`,
               }}
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: level * 0.02, type: 'spring', stiffness: 200 }}
+              animate={{
+                y: [-10, 10, -10],
+                opacity: [0.3, 0.7, 0.3],
+                scale: [0.8, 1.2, 0.8],
+              }}
+              transition={{
+                duration: 2 + i * 0.2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
             >
-              {/* Milestone label */}
-              {milestoneLabel && (
-                <motion.div
-                  className="absolute -top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: level * 0.02 + 0.3 }}
-                >
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    {milestoneLabel}
-                  </div>
-                </motion.div>
-              )}
+              <Sparkles className="w-4 h-4 text-yellow-300" />
+            </motion.div>
+          ))}
+        </div>
 
-              {/* Level node */}
+        {/* Winding path/river */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 1 }}>
+          <defs>
+            <linearGradient id="pathGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style={{ stopColor: currentTheme.pathColor, stopOpacity: 0.8 }} />
+              <stop offset="100%" style={{ stopColor: currentTheme.pathColor, stopOpacity: 0.4 }} />
+            </linearGradient>
+          </defs>
+          {Array.from({ length: maxLevel - 1 }, (_, i) => i + 1).map((level) => {
+            const from = getPosition(level);
+            const to = getPosition(level + 1);
+            const levelData = getLevelData(level);
+            const isCompleted = levelData.status === 'completed' || level < currentLevel;
+            
+            return (
+              <motion.path
+                key={`path-${level}`}
+                d={`M ${from.x} ${from.y} Q ${(from.x + to.x) / 2} ${(from.y + to.y) / 2 - 30} ${to.x} ${to.y}`}
+                stroke={isCompleted ? 'url(#pathGradient)' : '#CBD5E1'}
+                strokeWidth="40"
+                fill="none"
+                strokeLinecap="round"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: level * 0.05 }}
+              />
+            );
+          })}
+        </svg>
+
+        {/* Level nodes */}
+        <div className="relative" style={{ height: `${Math.ceil(maxLevel / 3) * 180 + 200}px`, zIndex: 10 }}>
+          {Array.from({ length: maxLevel }, (_, i) => i + 1).map((level) => {
+            const pos = getPosition(level);
+            const levelData = getLevelData(level);
+            const isCurrent = level === currentLevel;
+            const isSpecial = level % 5 === 0;
+
+            return (
               <motion.div
-                className={`
-                  relative w-16 h-16 rounded-full flex items-center justify-center
-                  bg-gradient-to-br ${getLevelColor(level)}
-                  ${isLocked ? 'opacity-50' : ''}
-                  ${isCurrent ? 'ring-4 ring-purple-400 ring-offset-4' : ''}
-                  shadow-lg transition-all duration-300 hover:scale-110
-                `}
-                whileHover={!isLocked ? { scale: 1.15, rotate: 5 } : {}}
-                animate={isCurrent ? {
-                  boxShadow: [
-                    '0 0 20px rgba(168, 85, 247, 0.4)',
-                    '0 0 40px rgba(236, 72, 153, 0.6)',
-                    '0 0 20px rgba(168, 85, 247, 0.4)',
-                  ],
-                } : {}}
-                transition={{ duration: 2, repeat: Infinity }}
+                key={`level-${level}`}
+                data-level={level}
+                className="absolute cursor-pointer"
+                style={{
+                  left: `${pos.x}%`,
+                  top: `${pos.y}px`,
+                  transform: 'translate(-50%, -50%)',
+                }}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ 
+                  delay: level * 0.03, 
+                  type: 'spring', 
+                  stiffness: 200,
+                  damping: 10 
+                }}
+                onClick={() => handleLevelClick(levelData)}
               >
-                {/* Sparkle effect for milestones */}
-                {isMilestone && isCompleted && (
-                  <div className="absolute inset-0">
-                    {[...Array(6)].map((_, i) => (
+                {/* Level container */}
+                <motion.div
+                  className="relative"
+                  whileHover={levelData.status !== 'locked' ? { 
+                    scale: 1.15,
+                    rotate: [0, -5, 5, 0],
+                    transition: { duration: 0.3 }
+                  } : {}}
+                  animate={isCurrent ? {
+                    scale: [1, 1.1, 1],
+                    transition: { duration: 1.5, repeat: Infinity }
+                  } : {}}
+                >
+                  {/* Glow effect for current level */}
+                  {isCurrent && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full blur-xl"
+                      style={{
+                        background: 'radial-gradient(circle, rgba(168,85,247,0.6) 0%, rgba(236,72,153,0.3) 50%, transparent 70%)',
+                        width: '140px',
+                        height: '140px',
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                      animate={{
+                        scale: [1, 1.3, 1],
+                        opacity: [0.5, 0.8, 0.5],
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                  )}
+
+                  {/* Level node circle */}
+                  <div
+                    className={`
+                      relative w-24 h-24 rounded-full flex items-center justify-center
+                      bg-gradient-to-br ${getLevelColor(level, levelData.status)}
+                      ${levelData.status === 'locked' ? 'opacity-50' : 'opacity-100'}
+                      shadow-2xl border-4 border-white
+                      ${isCurrent ? 'ring-4 ring-purple-400 ring-offset-2' : ''}
+                    `}
+                    style={{
+                      boxShadow: levelData.status !== 'locked' 
+                        ? '0 10px 30px rgba(0,0,0,0.3), inset 0 -5px 15px rgba(0,0,0,0.2)'
+                        : '0 5px 15px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    {/* Inner content */}
+                    <div className="text-white text-3xl font-bold z-10">
+                      {levelData.status === 'locked' ? (
+                        <Lock className="w-8 h-8" />
+                      ) : isSpecial ? (
+                        getMilestoneIcon(level)
+                      ) : (
+                        level
+                      )}
+                    </div>
+
+                    {/* Completed checkmark badge */}
+                    {levelData.status === 'completed' && (
                       <motion.div
-                        key={i}
-                        className="absolute w-1 h-1 bg-yellow-300 rounded-full"
-                        style={{
-                          left: '50%',
-                          top: '50%',
-                        }}
-                        animate={{
-                          x: [0, Math.cos(i * 60 * Math.PI / 180) * 30],
-                          y: [0, Math.sin(i * 60 * Math.PI / 180) * 30],
-                          opacity: [1, 0],
-                        }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Infinity,
-                          delay: i * 0.2,
-                        }}
-                      />
-                    ))}
+                        className="absolute -top-2 -right-2 bg-green-500 rounded-full p-2 shadow-lg border-2 border-white"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: 'spring', delay: 0.2 }}
+                      >
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </motion.div>
+                    )}
+
+                    {/* Play button for unlocked/current */}
+                    {(levelData.status === 'unlocked' || levelData.status === 'current') && (
+                      <motion.div
+                        className="absolute -bottom-2 -right-2 bg-blue-500 rounded-full p-2 shadow-lg border-2 border-white"
+                        whileHover={{ scale: 1.2, rotate: 90 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Play className="w-5 h-5 text-white fill-white" />
+                      </motion.div>
+                    )}
+
+                    {/* Retry button for completed */}
+                    {levelData.status === 'completed' && levelData.stars < 3 && (
+                      <motion.div
+                        className="absolute -bottom-2 -left-2 bg-orange-500 rounded-full p-2 shadow-lg border-2 border-white"
+                        whileHover={{ scale: 1.2, rotate: -360 }}
+                      >
+                        <RotateCcw className="w-4 h-4 text-white" />
+                      </motion.div>
+                    )}
                   </div>
-                )}
 
-                {/* Level icon or lock */}
-                <div className="text-2xl z-10">
-                  {isLocked ? <Lock className="w-6 h-6 text-white" /> : getLevelIcon(level)}
-                </div>
-
-                {/* Level number */}
-                <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2">
-                  <span className="text-xs font-bold text-slate-700 bg-white px-2 py-0.5 rounded-full shadow">
-                    {level}
-                  </span>
-                </div>
-
-                {/* Checkmark for completed */}
-                {isCompleted && (
-                  <motion.div
-                    className="absolute -top-1 -right-1 bg-green-500 rounded-full p-1"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <CheckCircle className="w-4 h-4 text-white" />
-                  </motion.div>
-                )}
-              </motion.div>
-
-              {/* Animated character (Candy Crush style) */}
-              <AnimatePresence>
-                {hasCharacter && (
-                  <motion.div
-                    className="absolute -top-20 left-1/2 transform -translate-x-1/2"
-                    initial={{ scale: 0, y: -50, rotate: -180 }}
-                    animate={{ 
-                      scale: [1, 1.2, 1], 
-                      y: [0, -10, 0],
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    exit={{ scale: 0, y: 50, rotate: 180 }}
-                    transition={{ 
-                      scale: { duration: 0.5, repeat: Infinity, repeatDelay: 1 },
-                      y: { duration: 1, repeat: Infinity },
-                      rotate: { duration: 2, repeat: Infinity },
-                    }}
-                  >
-                    <div className="relative">
-                      {/* Character emoji */}
-                      <div className="text-6xl filter drop-shadow-lg">
-                        🚀
-                      </div>
-                      
-                      {/* Particle trail */}
-                      {[...Array(5)].map((_, i) => (
+                  {/* Stars below level */}
+                  {levelData.status !== 'locked' && levelData.stars > 0 && (
+                    <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 flex gap-1">
+                      {[1, 2, 3].map((starNum) => (
                         <motion.div
-                          key={i}
-                          className="absolute left-1/2 top-1/2"
-                          animate={{
-                            x: [-10, 10, -10][i % 3],
-                            y: [20 + i * 5, 30 + i * 5],
-                            opacity: [0.6, 0],
-                            scale: [1, 0],
-                          }}
-                          transition={{
-                            duration: 0.8,
-                            repeat: Infinity,
-                            delay: i * 0.1,
-                          }}
+                          key={`star-${level}-${starNum}`}
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ delay: starNum * 0.1 + 0.3 }}
                         >
-                          <Sparkles className="w-3 h-3 text-yellow-400" />
+                          <Star
+                            className={`w-6 h-6 ${
+                              starNum <= levelData.stars
+                                ? 'fill-yellow-400 text-yellow-500'
+                                : 'fill-gray-300 text-gray-400'
+                            }`}
+                            style={{
+                              filter: starNum <= levelData.stars ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'none'
+                            }}
+                          />
                         </motion.div>
                       ))}
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  )}
 
-              {/* Level-up celebration effect */}
-              <AnimatePresence>
-                {isCurrent && showLevelUpEffect && (
-                  <motion.div
-                    className="absolute inset-0"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 3, opacity: 0 }}
-                    exit={{ scale: 4, opacity: 0 }}
-                    transition={{ duration: 1 }}
-                  >
-                    <div className="w-full h-full rounded-full bg-yellow-400 opacity-50" />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          );
-        })}
-      </div>
+                  {/* Level number badge below stars */}
+                  <div className="absolute -bottom-20 left-1/2 transform -translate-x-1/2">
+                    <div className="bg-white text-slate-800 font-bold text-sm px-3 py-1 rounded-full shadow-md border-2 border-slate-200">
+                      Level {level}
+                    </div>
+                  </div>
 
-      {/* Level progress summary */}
-      <motion.div
-        className="sticky bottom-4 left-1/2 transform -translate-x-1/2 w-max mx-auto mt-8"
-        initial={{ y: 50, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <div className="bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-xl border-2 border-purple-200">
-          <div className="flex items-center gap-4 text-sm font-semibold">
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              <span className="text-slate-700">Level {currentLevel}</span>
-            </div>
-            <div className="w-px h-6 bg-slate-300" />
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-purple-500" />
-              <span className="text-slate-700">{currentLevel}/{maxLevel}</span>
-            </div>
-            <div className="w-px h-6 bg-slate-300" />
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              <span className="text-slate-700">{((currentLevel / maxLevel) * 100).toFixed(0)}% Complete</span>
+                  {/* Milestone label */}
+                  {isSpecial && levelData.status === 'completed' && (
+                    <motion.div
+                      className="absolute -top-16 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <div className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg border-2 border-white">
+                        🏆 Milestone {level}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Current level indicator */}
+                  {isCurrent && (
+                    <motion.div
+                      className="absolute -top-28 left-1/2 transform -translate-x-1/2"
+                      animate={{
+                        y: [0, -10, 0],
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <div className="text-6xl filter drop-shadow-2xl">
+                        🚀
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* Progress footer */}
+        <motion.div
+          className="sticky bottom-6 left-1/2 transform -translate-x-1/2 w-max mx-auto z-50"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="bg-white/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border-2 border-purple-300">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-purple-600" />
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{currentLevel}</div>
+                  <div className="text-xs text-slate-600">Current</div>
+                </div>
+              </div>
+              <div className="w-px h-10 bg-slate-300" />
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{currentLevel - 1}</div>
+                  <div className="text-xs text-slate-600">Completed</div>
+                </div>
+              </div>
+              <div className="w-px h-10 bg-slate-300" />
+              <div className="flex items-center gap-2">
+                <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                <div>
+                  <div className="text-2xl font-bold text-slate-800">{Math.floor((currentLevel / maxLevel) * 100)}%</div>
+                  <div className="text-xs text-slate-600">Progress</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+
+      {/* Level Detail Modal */}
+      {showLevelModal && selectedLevel && (
+        <LevelDetailModal
+          level={selectedLevel}
+          isOpen={showLevelModal}
+          onClose={() => setShowLevelModal(false)}
+          worldTheme={worldTheme}
+        />
+      )}
+    </>
   );
 };
 

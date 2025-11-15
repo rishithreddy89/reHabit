@@ -18,6 +18,7 @@ import LevelUpModal from '@/components/gamification/LevelUpModal';
 import LeaderboardUI from '@/components/gamification/LeaderboardUI';
 import GamificationStats from '@/components/gamification/GamificationStats';
 import WelcomeAnimation from '@/components/gamification/WelcomeAnimation';
+import WorldSelector from '@/components/gamification/WorldSelector';
 
 // Badge definitions (same as backend) - kept as fallback/local catalog if backend doesn't return everything
 const ALL_BADGES = [
@@ -44,6 +45,10 @@ const GamificationPage = ({ user, onLogout }) => {
   const [showWelcome, setShowWelcome] = useState(() => {
     return !localStorage.getItem('gamificationWelcomeSeen');
   });
+  const [displayXP, setDisplayXP] = useState(null);
+  const [selectedWorld, setSelectedWorld] = useState('forest');
+  const [worlds, setWorlds] = useState([]);
+  const [worldLevels, setWorldLevels] = useState([]);
 
   const handleCloseWelcome = () => {
     setShowWelcome(false);
@@ -78,8 +83,11 @@ const GamificationPage = ({ user, onLogout }) => {
     fetchLeaderboard();
     fetchShopItems();
     fetchBadges();
+    fetchDisplayXP();
+    fetchWorlds();
+    fetchWorldLevels(selectedWorld);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedWorld]);
 
   const fetchGamificationData = async () => {
     setLoading(true);
@@ -103,6 +111,9 @@ const GamificationPage = ({ user, onLogout }) => {
         ...payload // include any extra fields
       };
 
+      // keep displayXP from previous fetch (fetchDisplayXP may run concurrently)
+      if (displayXP != null) unified.displayXP = displayXP;
+
       // detect level-up
       const prevLevel = prevLevelRef.current ?? unified.level;
       if (unified.level > prevLevel) {
@@ -120,6 +131,24 @@ const GamificationPage = ({ user, onLogout }) => {
       toast.error('Failed to load gamification profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchDisplayXP = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/users/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // expect { displayXP: number } or similar
+      const dxp = response?.data?.displayXP ?? response?.data?.displayXp ?? null;
+      if (dxp != null) {
+        setDisplayXP(dxp);
+        setGamificationData(prev => (prev ? { ...prev, displayXP: dxp } : { displayXP: dxp }));
+      }
+    } catch (error) {
+      // non-fatal: log and continue using totalXP fallback
+      console.warn('Failed to fetch displayXP from /users/stats', error);
     }
   };
 
@@ -188,6 +217,94 @@ const GamificationPage = ({ user, onLogout }) => {
     }
   };
 
+  const fetchWorlds = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/worlds`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWorlds(response.data || []);
+    } catch (error) {
+      console.warn('Failed to fetch worlds', error);
+      // Fallback to default worlds
+      setWorlds([
+        {
+          id: 'forest',
+          name: 'Focus Forest',
+          description: 'Master your concentration',
+          icon: '🌲',
+          gradient: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
+          status: 'active',
+          progress: 45,
+          completedLevels: 13,
+          totalLevels: 50,
+          stars: 28
+        },
+        {
+          id: 'ocean',
+          name: 'Wellness Waves',
+          description: 'Flow with healthy habits',
+          icon: '🌊',
+          gradient: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
+          status: 'locked',
+          progress: 0,
+          completedLevels: 0,
+          totalLevels: 50,
+          stars: 0
+        },
+        {
+          id: 'mountain',
+          name: 'Productivity Peak',
+          description: 'Climb to new heights',
+          icon: '⛰️',
+          gradient: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+          status: 'locked',
+          progress: 0,
+          completedLevels: 0,
+          totalLevels: 50,
+          stars: 0
+        },
+        {
+          id: 'gym',
+          name: 'MindGym',
+          description: 'Strengthen your mind',
+          icon: '💪',
+          gradient: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+          status: 'locked',
+          progress: 0,
+          completedLevels: 0,
+          totalLevels: 50,
+          stars: 0
+        },
+        {
+          id: 'garden',
+          name: 'Growth Garden',
+          description: 'Nurture your potential',
+          icon: '🌺',
+          gradient: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
+          status: 'locked',
+          progress: 0,
+          completedLevels: 0,
+          totalLevels: 50,
+          stars: 0
+        }
+      ]);
+    }
+  };
+
+  const fetchWorldLevels = async (worldId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/worlds/${worldId}/levels`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWorldLevels(response.data || []);
+    } catch (error) {
+      console.warn('Failed to fetch world levels', error);
+      setWorldLevels([]);
+    }
+  };
+
   const handleJoinChallenge = async (challengeId) => {
     try {
       const token = localStorage.getItem('token');
@@ -201,6 +318,10 @@ const GamificationPage = ({ user, onLogout }) => {
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to join challenge');
     }
+  };
+
+  const handleLevelClick = (levelData) => {
+    console.log('Level clicked:', levelData);
   };
 
   if (loading) {
@@ -266,26 +387,22 @@ const GamificationPage = ({ user, onLogout }) => {
               <Trophy className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
+
             <TabsTrigger value="levelmap">
               <Map className="w-4 h-4 mr-2" />
               Level Map
             </TabsTrigger>
-            <TabsTrigger value="challenges">
-              <Target className="w-4 h-4 mr-2" />
-              Challenges
-            </TabsTrigger>
+
             <TabsTrigger value="shop">
               <ShoppingBag className="w-4 h-4 mr-2" />
               Shop
             </TabsTrigger>
-            <TabsTrigger value="badges">
-              <Star className="w-4 h-4 mr-2" />
-              Badges
+
+            <TabsTrigger value="challenges">
+              <Target className="w-4 h-4 mr-2" />
+              Challenges
             </TabsTrigger>
-            <TabsTrigger value="leaderboard">
-              <Trophy className="w-4 h-4 mr-2" />
-              Leaderboard
-            </TabsTrigger>
+
           </TabsList>
 
           {/* Overview Tab */}
@@ -293,8 +410,9 @@ const GamificationPage = ({ user, onLogout }) => {
             <div className="grid md:grid-cols-2 gap-6">
               {/* XP Progress */}
               <XPProgressBar
-                currentXP={gamificationData?.totalXP || 0}
+                currentXP={gamificationData?.displayXP ?? 0}
                 level={gamificationData?.level || 1}
+                totalXP={gamificationData?.totalXP}
               />
 
               {/* Avatar */}
@@ -345,7 +463,28 @@ const GamificationPage = ({ user, onLogout }) => {
 
           {/* Level Map Tab */}
           <TabsContent value="levelmap" className="mt-6">
-            <LevelMap currentLevel={gamificationData?.level || 1} maxLevel={100} />
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-3xl font-bold text-slate-800 mb-2">🗺️ Quest Map</h2>
+                <p className="text-slate-600">Choose your world and conquer the levels!</p>
+              </div>
+
+              {/* World Selector */}
+              <WorldSelector
+                worlds={worlds}
+                selectedWorld={selectedWorld}
+                onSelectWorld={setSelectedWorld}
+              />
+
+              {/* Level Map */}
+              <LevelMap
+                currentLevel={gamificationData?.level || 1}
+                maxLevel={50}
+                levels={worldLevels}
+                onLevelClick={handleLevelClick}
+                worldTheme={selectedWorld}
+              />
+            </div>
           </TabsContent>
 
           {/* Challenges Tab */}
@@ -402,7 +541,10 @@ const GamificationPage = ({ user, onLogout }) => {
 
           {/* Leaderboard Tab */}
           <TabsContent value="leaderboard" className="mt-6">
-            <LeaderboardUI currentUserId={user?._id} leaderboardData={Array.isArray(leaderboard) ? leaderboard : safeToArray(leaderboard)} />
+            <LeaderboardUI
+              currentUserId={user?._id}
+              leaderboardData={Array.isArray(leaderboard) ? leaderboard : safeToArray(leaderboard)}
+            />
           </TabsContent>
         </Tabs>
 
