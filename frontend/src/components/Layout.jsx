@@ -16,7 +16,6 @@ const Layout = ({ children, user, onLogout, role = 'user' }) => {
     { path: '/user/mentors', icon: UserPlus, label: 'Mentors' },
     { path: '/user/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { path: '/user/leaderboard', icon: Trophy, label: 'Leaderboard' },
-    { path: '/user/badges', icon: Award, label: 'Badges' },
     { path: '/user/ai-chat', icon: MessageCircle, label: 'AI Chat' },
   ];
 

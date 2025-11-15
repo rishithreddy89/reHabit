@@ -118,7 +118,7 @@ function App() {
         <Route path="/user/habits/:habitId" element={user && user.role === 'user' ? <HabitDetail user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/community" element={user && user.role === 'user' ? <CommunityPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/leaderboard" element={user && user.role === 'user' ? <LeaderboardPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
-        <Route path="/user/badges" element={user && user.role === 'user' ? <BadgesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        {/* <Route path="/user/badges" element={user && user.role === 'user' ? <BadgesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} /> */}
         <Route path="/user/ai-chat" element={user && user.role === 'user' ? <AIChatbot user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/profile" element={user && user.role === 'user' ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors" element={user && user.role === 'user' ? <MentorsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
