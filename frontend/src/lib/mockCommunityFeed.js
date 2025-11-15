@@ -10,11 +10,18 @@ export const mockUsers = [
 ];
 
 export const mockCommunities = [
-  { id: 'c1', name: 'Morning Risers', type: 'group', description: 'Early morning routine builders', members: ['u1','u2','u3'], leader: 'u3', coords: { lat: 37.7749, lng: -122.4194 } },
-  { id: 'c2', name: '30-Day Fitness', type: 'challenge', description: 'Daily bodyweight routines', members: ['u2','u4'], leader: 'u2', coords: { lat: 37.7849, lng: -122.4094 } },
-  { id: 'c3', name: 'Focus Hour', type: 'group', description: 'Deep work and Pomodoro', members: ['u1','u5'], leader: 'u1', coords: { lat: 37.7649, lng: -122.4294 } },
-  { id: 'c4', name: 'Evening Walkers', type: 'group', description: 'Casual evening walks and steps', members: ['u5','u6'], leader: 'u5', coords: { lat: 37.7685, lng: -122.4250 } },
-  { id: 'c5', name: 'Meditation Circle', type: 'group', description: 'Short daily mindfulness practice', members: ['u7','u1'], leader: 'u7', coords: { lat: 37.7790, lng: -122.4180 } }
+  { id: 'c1', name: 'Morning Risers', type: 'group', description: 'Early morning routine builders', members: ['u1','u2','u3'], leader: 'u3', coords: { lat: 37.7749, lng: -122.4194 }, category: 'productivity', matchScore: 95 },
+  { id: 'c2', name: '30-Day Fitness', type: 'challenge', description: 'Daily bodyweight routines', members: ['u2','u4'], leader: 'u2', coords: { lat: 37.7849, lng: -122.4094 }, category: 'fitness', matchScore: 88 },
+  { id: 'c3', name: 'Focus Hour', type: 'group', description: 'Deep work and Pomodoro', members: ['u1','u5'], leader: 'u1', coords: { lat: 37.7649, lng: -122.4294 }, category: 'productivity', matchScore: 92 },
+  { id: 'c4', name: 'Evening Walkers', type: 'group', description: 'Casual evening walks and steps', members: ['u5','u6'], leader: 'u5', coords: { lat: 37.7685, lng: -122.4250 }, category: 'fitness', matchScore: 85 },
+  { id: 'c5', name: 'Meditation Circle', type: 'group', description: 'Short daily mindfulness practice', members: ['u7','u1'], leader: 'u7', coords: { lat: 37.7790, lng: -122.4180 }, category: 'mindfulness', matchScore: 90 },
+  { id: 'c6', name: 'Book Club Daily', type: 'group', description: 'Read 30 minutes every day together', members: ['u2','u3'], leader: 'u2', coords: { lat: 37.7700, lng: -122.4150 }, category: 'learning', matchScore: 87 },
+  { id: 'c7', name: 'Hydration Heroes', type: 'challenge', description: 'Track 8 glasses of water daily', members: ['u4','u5','u6'], leader: 'u4', coords: { lat: 37.7800, lng: -122.4100 }, category: 'health', matchScore: 82 },
+  { id: 'c8', name: 'Code Daily', type: 'group', description: 'Practice coding challenges daily', members: ['u1','u3','u7'], leader: 'u1', coords: { lat: 37.7650, lng: -122.4300 }, category: 'learning', matchScore: 94 },
+  { id: 'c9', name: 'Gratitude Journal', type: 'group', description: 'Share daily gratitude reflections', members: ['u2','u6'], leader: 'u6', coords: { lat: 37.7720, lng: -122.4220 }, category: 'mindfulness', matchScore: 89 },
+  { id: 'c10', name: 'Meal Prep Masters', type: 'group', description: 'Weekly meal planning and prep', members: ['u3','u4','u5'], leader: 'u3', coords: { lat: 37.7770, lng: -122.4170 }, category: 'health', matchScore: 80 },
+  { id: 'c11', name: 'Sleep Champions', type: 'challenge', description: '8 hours sleep for 30 days', members: ['u1','u7'], leader: 'u7', coords: { lat: 37.7760, lng: -122.4190 }, category: 'health', matchScore: 91 },
+  { id: 'c12', name: 'Creative Writing', type: 'group', description: 'Write 500 words daily', members: ['u2','u5'], leader: 'u2', coords: { lat: 37.7730, lng: -122.4210 }, category: 'creativity', matchScore: 86 }
 ];
 
 export const mockPosts = [

@@ -21,6 +21,7 @@ import MentorsPage from './pages/user/MentorsPage';
 import MentorProfilePage from './pages/user/MentorProfilePage';
 import MentorRequestsPage from './pages/user/MentorRequestsPage';
 import MySubscriptions from './pages/user/MySubscriptions';
+import GamificationPage from './pages/user/GamificationPage';
 
 // Mentor pages
 import MentorDashboard from '@/pages/mentor/MentorDashboard';
@@ -112,116 +113,19 @@ function App() {
         />
 
         {/* User Routes */}
-        <Route 
-          path="/user/dashboard" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <UserDashboard user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/habits" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <HabitManagement user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/habits/:habitId" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <HabitDetail user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/community" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <CommunityPage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/leaderboard" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <LeaderboardPage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/badges" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <BadgesPage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/ai-chat" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <AIChatbot user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/profile" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <ProfilePage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/mentors" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <MentorsPage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/mentors/requests" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <MentorRequestsPage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
-        <Route 
-          path="/user/mentors/:mentorId" 
-          element={
-            isAuthenticated && userRole === 'user' ? (
-              <MentorProfilePage user={user} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/auth" replace />
-            )
-          } 
-        />
+        <Route path="/user/dashboard" element={user && user.role === 'user' ? <UserDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/habits" element={user && user.role === 'user' ? <HabitManagement user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/habits/:habitId" element={user && user.role === 'user' ? <HabitDetail user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/community" element={user && user.role === 'user' ? <CommunityPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/leaderboard" element={user && user.role === 'user' ? <LeaderboardPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/badges" element={user && user.role === 'user' ? <BadgesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/ai-chat" element={user && user.role === 'user' ? <AIChatbot user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/profile" element={user && user.role === 'user' ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/mentors" element={user && user.role === 'user' ? <MentorsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/mentors/requests" element={user && user.role === 'user' ? <MentorRequestsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/mentors/:mentorId" element={user && user.role === 'user' ? <MentorProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/subscriptions" element={user && user.role === 'user' ? <MySubscriptions user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/gamification" element={user && user.role === 'user' ? <GamificationPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
 
         {/* Mentor Routes */}
         <Route 

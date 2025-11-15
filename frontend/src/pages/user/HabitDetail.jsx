@@ -166,9 +166,54 @@ const HabitDetail = ({ user, onLogout }) => {
         setShowValidationResult(true);
         
         if (response.data.completion_status === 'completed') {
-          toast.success(`🎉 Habit Completed! +${response.data.xp_earned} XP! Streak: ${response.data.new_streak} days`);
+          // Process gamification rewards
+          try {
+            const token = localStorage.getItem('token');
+            const gamificationResponse = await axios.post(
+              `${API}/gamification/complete-habit`,
+              {
+                habitId: habitId,
+                difficulty: habit.difficulty,
+                category: habit.category
+              },
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            const gamData = gamificationResponse.data;
+            let toastMessage = `🎉 Habit Completed! +${gamData.xpEarned} XP`;
+            
+            if (gamData.coinsEarned > 0) {
+              toastMessage += ` | +${gamData.coinsEarned} 🪙`;
+            }
+            
+            if (gamData.currentStreak > 1) {
+              toastMessage += ` | 🔥 ${gamData.currentStreak} day streak!`;
+            }
+
+            toast.success(toastMessage);
+
+            // Show badge notifications
+            if (gamData.newBadges && gamData.newBadges.length > 0) {
+              gamData.newBadges.forEach(badge => {
+                setTimeout(() => {
+                  toast.success(`🏆 Badge Unlocked: ${badge.name}!`, { duration: 4000 });
+                }, 500);
+              });
+            }
+
+            // Show level up notification
+            if (gamData.leveledUp) {
+              setTimeout(() => {
+                toast.success(`⭐ Level Up! You're now Level ${gamData.newLevel}!`, { duration: 5000 });
+              }, 1000);
+            }
+          } catch (gamError) {
+            console.error('Gamification processing error:', gamError);
+            // Don't fail the whole completion if gamification fails
+            toast.success(`🎉 Habit Completed! Streak: ${response.data.new_streak} days`);
+          }
         } else {
-          toast.info(`💪 Good effort! +${response.data.xp_earned} XP. Keep improving!`);
+          toast.info(`💪 Good effort! Keep improving!`);
         }
         
         fetchHabitData();
