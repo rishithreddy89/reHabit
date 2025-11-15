@@ -163,6 +163,7 @@ async function gatherAnalytics() {
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+
 // mount habit routes
 const habitRoutes = require('./routes/habits');
 app.use('/api/habits', habitRoutes);
