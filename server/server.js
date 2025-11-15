@@ -37,14 +37,18 @@ if (!MONGO_URI && MONGO_USER && MONGO_PASS && MONGO_HOST) {
 }
 
 const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+// In development reflect the request origin to avoid strict origin mismatches (useful for localhost testing).
+// In production use configured CORS_ORIGIN (string or array).
+const devReflectOrigin = process.env.NODE_ENV !== 'production';
 const corsOptions = {
-  origin: Array.isArray(CORS_ORIGIN) ? CORS_ORIGIN : CORS_ORIGIN,
+  origin: devReflectOrigin ? true : (Array.isArray(CORS_ORIGIN) ? CORS_ORIGIN : CORS_ORIGIN),
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
   optionsSuccessStatus: 204
 };
 
+// Use CORS middleware with the computed options. When origin === true, cors will echo back request Origin header.
 app.use(cors(corsOptions));
 // ensure preflight requests are handled
 app.options('*', cors(corsOptions));
@@ -140,8 +144,19 @@ import socialRoutes from './routes/social.js';
 
 // Mount routes
 app.use('/api/auth', authRoutes);
+
+
+// mount habit routes
+const habitRoutes = require('./routes/habits');
 app.use('/api/habits', habitRoutes);
 app.use('/api/communities', communityRoutes);
+
+// mount badges routes
+const badgesRoutes = require('./routes/badges');
+app.use('/api/badges', badgesRoutes);
+
+// mount challenge routes
+const challengeRoutes = require('./routes/challenges');
 app.use('/api/challenges', challengeRoutes);
 
 // mount mentor routes
