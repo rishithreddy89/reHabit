@@ -18,7 +18,7 @@ const ClientManagement = ({ user, onLogout }) => {
 
   const fetchClients = async () => {
     try {
-      const response = await axios.get(`${API}/mentor/clients`);
+      const response = await axios.get(`${API}/mentors/clients`);
       setClients(response.data);
     } catch (error) {
       toast.error('Failed to load clients');
@@ -58,7 +58,7 @@ const ClientManagement = ({ user, onLogout }) => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {clients.map((client) => (
-              <Card key={client.id} className="card-hover" data-testid={`client-card-${client.id}`}>
+              <Card key={client._id || client.id} className="card-hover" data-testid={`client-card-${client._id || client.id}`}>
                 <CardHeader>
                   <CardTitle>{client.name}</CardTitle>
                   <CardDescription>{client.email}</CardDescription>
@@ -78,8 +78,8 @@ const ClientManagement = ({ user, onLogout }) => {
                       <span className="font-semibold text-slate-800">{client.streak} days</span>
                     </div>
                   </div>
-                  <Link to={`/mentor/client/${client.id}`}>
-                    <button className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition-colors" data-testid={`view-client-${client.id}`}>
+                  <Link to={`/mentor/client/${client._id || client.id}`}>
+                    <button className="w-full bg-emerald-600 text-white py-2 rounded-lg hover:bg-emerald-700 transition-colors" data-testid={`view-client-${client._id || client.id}`}>
                       View Progress
                     </button>
                   </Link>

@@ -20,11 +20,19 @@ const ClientProgress = ({ user, onLogout }) => {
   }, [clientId]);
 
   const fetchClientProgress = async () => {
+    if (!clientId) {
+      toast.error('Invalid client ID');
+      setLoading(false);
+      return;
+    }
+    
     try {
-      const response = await axios.get(`${API}/mentor/client/${clientId}/progress`);
+      const response = await axios.get(`${API}/mentors/clients/${clientId}`);
+      console.log('Client progress data:', response.data);
       setData(response.data);
     } catch (error) {
-      toast.error('Failed to load client progress');
+      console.error('Error fetching client progress:', error);
+      toast.error('Failed to load client data');
       navigate('/mentor/clients');
     } finally {
       setLoading(false);
@@ -63,8 +71,8 @@ const ClientProgress = ({ user, onLogout }) => {
               <TrendingUp className="w-5 h-5 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{data.client.xp}</div>
-              <p className="text-xs text-slate-500 mt-1">Level {data.client.level}</p>
+              <div className="text-3xl font-bold text-slate-800">{data.client?.xp || 0}</div>
+              <p className="text-xs text-slate-500 mt-1">Level {data.client?.level || 1}</p>
             </CardContent>
           </Card>
 
@@ -74,7 +82,7 @@ const ClientProgress = ({ user, onLogout }) => {
               <Flame className="w-5 h-5 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold streak-fire">{data.client.streak}</div>
+              <div className="text-3xl font-bold streak-fire">{data.client?.streak || 0}</div>
               <p className="text-xs text-slate-500 mt-1">days</p>
             </CardContent>
           </Card>
@@ -85,7 +93,7 @@ const ClientProgress = ({ user, onLogout }) => {
               <Target className="w-5 h-5 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{data.total_habits}</div>
+              <div className="text-3xl font-bold text-slate-800">{data.total_habits || 0}</div>
               <p className="text-xs text-slate-500 mt-1">active tracking</p>
             </CardContent>
           </Card>
@@ -96,7 +104,7 @@ const ClientProgress = ({ user, onLogout }) => {
               <Flame className="w-5 h-5 text-emerald-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{data.active_streaks}</div>
+              <div className="text-3xl font-bold text-slate-800">{data.active_streaks || 0}</div>
               <p className="text-xs text-slate-500 mt-1">ongoing</p>
             </CardContent>
           </Card>
@@ -107,7 +115,7 @@ const ClientProgress = ({ user, onLogout }) => {
             <CardTitle>Client Habits</CardTitle>
           </CardHeader>
           <CardContent>
-            {data.habits.length === 0 ? (
+            {!data.habits || data.habits.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
                 <Target className="w-12 h-12 mx-auto mb-3 text-slate-300" />
                 <p>No habits yet</p>
@@ -115,7 +123,7 @@ const ClientProgress = ({ user, onLogout }) => {
             ) : (
               <div className="space-y-3">
                 {data.habits.map((habit) => (
-                  <div key={habit.id} className="p-4 border rounded-lg" data-testid={`habit-${habit.id}`}>
+                  <div key={habit.id || habit._id} className="p-4 border rounded-lg" data-testid={`habit-${habit.id || habit._id}`}>
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-slate-800">{habit.title}</h3>
                       <span className="text-sm text-slate-500">{habit.category}</span>
@@ -123,11 +131,11 @@ const ClientProgress = ({ user, onLogout }) => {
                     <div className="flex items-center gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-1">
                         <Flame className="w-4 h-4 text-orange-500" />
-                        <span>{habit.streak} day streak</span>
+                        <span>{habit.streak || 0} day streak</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Target className="w-4 h-4 text-emerald-600" />
-                        <span>{habit.total_completions} completions</span>
+                        <span>{habit.total_completions || habit.completionsCount || 0} completions</span>
                       </div>
                     </div>
                   </div>

@@ -9,9 +9,7 @@ import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
-const API = `${BACKEND_URL}/api`;
+import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState(null);
