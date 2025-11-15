@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const mentorAssignmentSchema = new mongoose.Schema({
   mentorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -11,4 +11,5 @@ const mentorAssignmentSchema = new mongoose.Schema({
 
 mentorAssignmentSchema.index({ mentorId: 1, userId: 1 });
 
-module.exports = mongoose.model('MentorAssignment', mentorAssignmentSchema);
+const MentorAssignment = mongoose.model('MentorAssignment', mentorAssignmentSchema);
+export default MentorAssignment;

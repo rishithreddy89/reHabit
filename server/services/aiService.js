@@ -1,11 +1,11 @@
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const openai = process.env.OPENAI_API_KEY 
+  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+  : null;
 
 // Simple rule-based classifier
-exports.classifyHabit = async (title, description = '') => {
+export const classifyHabit = async (title, description = '') => {
   const text = `${title} ${description}`.toLowerCase();
 
   if (/(workout|exercise|gym|run|walk|yoga|fitness|diet|nutrition|sleep|meditation)/i.test(text)) {
@@ -43,7 +43,12 @@ exports.classifyHabit = async (title, description = '') => {
 };
 
 // Generate multiple validation questions
-exports.generateValidationQuestions = async (title, description = '') => {
+export const generateValidationQuestions = async (title, description = '') => {
+  if (!openai) {
+    const singleQuestion = await generateVerificationQuestion(title, description);
+    return [singleQuestion];
+  }
+
   try {
     const prompt = `Generate 2-3 specific validation questions for this habit: "${title}". Return as JSON array: ["Q1", "Q2", "Q3"]`;
 
@@ -59,17 +64,17 @@ exports.generateValidationQuestions = async (title, description = '') => {
       const questions = JSON.parse(response);
       return Array.isArray(questions) ? questions : [questions];
     } catch (parseError) {
-      const singleQuestion = await exports.generateVerificationQuestion(title, description);
+      const singleQuestion = await generateVerificationQuestion(title, description);
       return [singleQuestion];
     }
   } catch (error) {
     console.error('Questions generation error:', error);
-    const singleQuestion = await exports.generateVerificationQuestion(title, description);
+    const singleQuestion = await generateVerificationQuestion(title, description);
     return [singleQuestion];
   }
 };
 
-exports.generateVerificationQuestion = async (title, description = '') => {
+export const generateVerificationQuestion = async (title, description = '') => {
   const text = `${title} ${description}`.toLowerCase();
   
   if (/meditat/i.test(text)) return "Which meditation technique did you use today?";
@@ -83,7 +88,11 @@ exports.generateVerificationQuestion = async (title, description = '') => {
 };
 
 // AI Chatbot functionality
-exports.getChatResponse = async (message, sessionId) => {
+export const getChatResponse = async (message, sessionId) => {
+  if (!openai) {
+    return "I'm here to help you build better habits! What would you like to work on?";
+  }
+
   try {
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -103,7 +112,18 @@ exports.getChatResponse = async (message, sessionId) => {
 };
 
 // Multi-question validation
-exports.validateHabitCompletion = async (habitTitle, habitDescription, questions, userAnswers) => {
+export const validateHabitCompletion = async (habitTitle, habitDescription, questions, userAnswers) => {
+  const allAnswersLength = userAnswers.join(' ').trim().length;
+  
+  if (!openai) {
+    return {
+      validated: allAnswersLength >= 20,
+      confidence: allAnswersLength >= 20 ? 70 : 30,
+      reasoning: "Basic validation based on answer length",
+      encouragement: "Keep working on your habits! 🌟"
+    };
+  }
+
   try {
     const questionsAndAnswers = questions.map((q, i) => 
       `Q${i+1}: ${q}\nA${i+1}: ${userAnswers[i] || 'No answer'}`
@@ -135,7 +155,6 @@ Respond with JSON:
   } catch (error) {
     console.error('Validation error:', error);
     
-    const allAnswersLength = userAnswers.join(' ').trim().length;
     return {
       validated: allAnswersLength >= 20,
       confidence: allAnswersLength >= 20 ? 70 : 30,
@@ -145,7 +164,7 @@ Respond with JSON:
   }
 };
 
-exports.generateEncouragement = async (habitTitle, streakCount, validated) => {
+export const generateEncouragement = async (habitTitle, streakCount, validated) => {
   const validatedMessages = [
     `🎉 Amazing! ${streakCount} days strong with ${habitTitle}!`,
     `🌟 Fantastic work! Your ${streakCount}-day streak shows dedication!`,

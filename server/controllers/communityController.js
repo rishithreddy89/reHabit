@@ -1,6 +1,6 @@
-const Community = require('../models/Community');
+import Community from '../models/Community.js';
 
-exports.createCommunity = async (req, res) => {
+const createCommunity = async (req, res) => {
   try {
     const { name, description, category, isPublic, rules } = req.body;
     
@@ -21,7 +21,7 @@ exports.createCommunity = async (req, res) => {
   }
 };
 
-exports.getCommunities = async (req, res) => {
+const getCommunities = async (req, res) => {
   try {
     const communities = await Community.find({ isActive: true, isPublic: true })
       .populate('creatorId', 'name avatar')
@@ -32,7 +32,7 @@ exports.getCommunities = async (req, res) => {
   }
 };
 
-exports.getCommunity = async (req, res) => {
+const getCommunity = async (req, res) => {
   try {
     const community = await Community.findById(req.params.id)
       .populate('creatorId', 'name avatar')
@@ -48,7 +48,7 @@ exports.getCommunity = async (req, res) => {
   }
 };
 
-exports.joinCommunity = async (req, res) => {
+const joinCommunity = async (req, res) => {
   try {
     const community = await Community.findById(req.params.id);
     
@@ -70,7 +70,7 @@ exports.joinCommunity = async (req, res) => {
   }
 };
 
-exports.leaveCommunity = async (req, res) => {
+const leaveCommunity = async (req, res) => {
   try {
     const community = await Community.findById(req.params.id);
     
@@ -86,4 +86,12 @@ exports.leaveCommunity = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  createCommunity,
+  getCommunities,
+  getCommunity,
+  joinCommunity,
+  leaveCommunity
 };

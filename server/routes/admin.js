@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import adminController from '../controllers/adminController.js';
+import { protect, restrictTo } from '../middleware/auth.js';
+
 const router = express.Router();
-const adminController = require('../controllers/adminController');
-const { protect, restrictTo } = require('../middleware/auth');
 
 router.use(protect);
 router.use(restrictTo('admin'));
@@ -14,4 +15,4 @@ router.get('/communities', adminController.getAllCommunities);
 router.patch('/communities/:id', adminController.updateCommunity);
 router.delete('/communities/:id', adminController.deleteCommunity);
 
-module.exports = router;
+export default router;
