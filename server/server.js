@@ -142,30 +142,16 @@ import aiRoutes from './routes/ai.js';
 import postRoutes from './routes/posts.js';
 import socialRoutes from './routes/social.js';
 
-// Mount routes
+// Mount routes (use the imported ESM route variables — do not re-require)
 app.use('/api/auth', authRoutes);
-
-
-// mount habit routes
-const habitRoutes = require('./routes/habits');
 app.use('/api/habits', habitRoutes);
 app.use('/api/communities', communityRoutes);
-
-// mount badges routes
-const badgesRoutes = require('./routes/badges');
 app.use('/api/badges', badgesRoutes);
-
-// mount challenge routes
-const challengeRoutes = require('./routes/challenges');
 app.use('/api/challenges', challengeRoutes);
-
-// mount mentor routes
-const mentorRoutes = require('./routes/mentor');
 app.use('/api/mentors', mentorRoutes);
-// add backward-compatible alias for older frontend calls that used singular "mentor"
+// backward-compatible alias
 app.use('/api/mentor', mentorRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/badges', badgesRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
