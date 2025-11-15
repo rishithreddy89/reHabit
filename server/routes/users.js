@@ -7,5 +7,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/stats', dashboard.getUserStats);
+router.get('/leaderboard', dashboard.getLeaderboard);
+router.get('/insights', dashboard.getAIInsights);
 
 export default router;
