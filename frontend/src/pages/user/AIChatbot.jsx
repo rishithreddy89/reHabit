@@ -37,15 +37,32 @@ const AIChatbot = ({ user, onLogout }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API}/ai/chat`, {
+      // Get token from localStorage to ensure we have it
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in again');
+        return;
+      }
+
+      const response = await axios.post('/ai/chat', {
         message: input,
         session_id: user.id
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
       
       const assistantMessage = { role: 'assistant', content: response.data.response };
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      toast.error('Failed to get AI response');
+      console.error('AI chat error:', error);
+      if (error.response?.status === 401) {
+        toast.error('Authentication failed. Please log in again.');
+      } else {
+        toast.error('Failed to get AI response');
+      }
       setMessages(prev => prev.slice(0, -1));
     } finally {
       setLoading(false);
@@ -71,11 +88,11 @@ const AIChatbot = ({ user, onLogout }) => {
           </CardHeader>
           
           <CardContent className="flex-1 overflow-auto p-6" data-testid="chat-messages">
-            <div className="space-y-4">
+            <div className="space-y-6">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex gap-3 ${
+                  className={`flex gap-4 ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                   data-testid={`message-${index}`}
@@ -86,13 +103,13 @@ const AIChatbot = ({ user, onLogout }) => {
                     </div>
                   )}
                   <div
-                    className={`max-w-[70%] p-4 rounded-2xl ${
+                    className={`max-w-[70%] p-5 rounded-2xl ${
                       message.role === 'user'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-slate-100 text-slate-800'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
                   </div>
                   {message.role === 'user' && (
                     <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">
@@ -102,11 +119,11 @@ const AIChatbot = ({ user, onLogout }) => {
                 </div>
               ))}
               {loading && (
-                <div className="flex gap-3 justify-start">
+                <div className="flex gap-4 justify-start">
                   <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
                     <Bot className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <div className="bg-slate-100 p-4 rounded-2xl">
+                  <div className="bg-slate-100 p-5 rounded-2xl">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
                       <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
