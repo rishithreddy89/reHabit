@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import '@/index.css';
 import axios from 'axios';
+import { API } from '@/lib/config';
 
 // Import pages
 import SplashScreen from '@/pages/SplashScreen';
@@ -22,6 +23,7 @@ import MentorProfilePage from './pages/user/MentorProfilePage';
 import MentorRequestsPage from './pages/user/MentorRequestsPage';
 import MySubscriptions from './pages/user/MySubscriptions';
 import GamificationPage from './pages/user/GamificationPage';
+import FriendsPage from '@/pages/user/FriendsPage';
 
 // Mentor pages
 import MentorDashboard from '@/pages/mentor/MentorDashboard';
@@ -33,9 +35,6 @@ import ClientProgress from '@/pages/mentor/ClientProgress';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import UserManagement from '@/pages/admin/UserManagement';
 import MentorManagement from '@/pages/admin/MentorManagement';
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:4000';
-const API = `${BACKEND_URL}/api`;
 
 // ensure axios uses stored token on initial load (prevents 401 for refresh)
 const _storedToken = localStorage.getItem('token');
@@ -117,6 +116,7 @@ function App() {
         <Route path="/user/habits" element={user && user.role === 'user' ? <HabitManagement user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/habits/:habitId" element={user && user.role === 'user' ? <HabitDetail user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/community" element={user && user.role === 'user' ? <CommunityPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/friends" element={user && user.role === 'user' ? <FriendsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/leaderboard" element={user && user.role === 'user' ? <LeaderboardPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         {/* <Route path="/user/badges" element={user && user.role === 'user' ? <BadgesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} /> */}
         <Route path="/user/ai-chat" element={user && user.role === 'user' ? <AIChatbot user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />

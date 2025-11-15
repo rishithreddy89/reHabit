@@ -17,6 +17,7 @@ import { mockCommunities } from '@/lib/mockCommunityFeed';
 import StudioHub from '@/components/StudioHub';
 import CommunityFeed from '@/components/CommunityFeed';
 import demoStore from '@/lib/demoStore';
+import FriendsHub from '@/components/FriendsHub';
 
 const CommunityPage = ({ user, onLogout }) => {
   const [communities, setCommunities] = useState([]);
@@ -529,11 +530,12 @@ const CommunityPage = ({ user, onLogout }) => {
         </div>
 
         <Tabs defaultValue="feed" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="feed" data-testid="feed-tab">Feed</TabsTrigger>
             <TabsTrigger value="groups" data-testid="groups-tab">Groups</TabsTrigger>
             <TabsTrigger value="studios" data-testid="studios-tab">Studios</TabsTrigger>
             <TabsTrigger value="challenges" data-testid="challenges-tab">Challenges</TabsTrigger>
+            <TabsTrigger value="friends" data-testid="friends-tab">Friends</TabsTrigger>
           </TabsList>
 
           <TabsContent value="feed" className="mt-6">
@@ -773,6 +775,10 @@ const CommunityPage = ({ user, onLogout }) => {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="friends" className="mt-6">
+            <FriendsHub />
           </TabsContent>
         </Tabs>
 
