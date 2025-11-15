@@ -343,38 +343,38 @@ exports.getMentorReviews = async (req, res) => {
 // Placeholder for client management
 exports.getMyClients = async (req, res) => {
   try {
-    const mentorProfile = await Mentor.findOne({ userId: req.user._id });
-    if (!mentorProfile) {
-      return res.status(404).json({ message: 'Mentor profile not found' });
-    }
+    // Find accepted requests where current user is the mentor
+    const requests = await MentorRequest.find({
+      mentorId: req.user._id,
+      status: 'accepted'
+    }).populate('userId', 'name email avatar stats').lean();
 
-    const clientIds = mentorProfile.mentees
-      .filter(m => m.status === 'active')
-      .map(m => m.userId);
+    // Build normalized client list with derived xp/level/streak/totalCompletions
+    const clients = await Promise.all(
+      requests.map(async (r) => {
+        const u = r.userId;
+        if (!u) return null;
 
-    // fetch basic user info
-    let clients = await User.find({ _id: { $in: clientIds } })
-      .select('name email avatar bio stats')
-      .lean();
+        // Accurate total completions for this client
+        const totalCompletions = await Completion.countDocuments({ userId: u._id });
 
-    // compute accurate completions and derive xp/level/streak per client
-    clients = await Promise.all(clients.map(async (c) => {
-      const totalCompletions = await Completion.countDocuments({ userId: c._id });
-      const xp = (c.stats && typeof c.stats.xp === 'number') ? c.stats.xp : (totalCompletions * 10);
-      const level = (c.stats && typeof c.stats.level === 'number') ? c.stats.level : (Math.floor(xp / 100) + 1);
-      return {
-        _id: c._id,
-        name: c.name,
-        email: c.email,
-        avatar: c.avatar || c.profile?.avatar || '',
-        xp,
-        level,
-        streak: c.stats?.currentStreak || 0,
-        totalCompletions,
-      };
-    }));
+        const xp = (u.stats && typeof u.stats.xp === 'number') ? u.stats.xp : (totalCompletions * 10);
+        const level = (u.stats && typeof u.stats.level === 'number') ? u.stats.level : (Math.floor(xp / 100) + 1);
 
-    res.json(clients);
+        return {
+          _id: u._id,
+          name: u.name,
+          email: u.email,
+          avatar: u.avatar || '',
+          xp,
+          level,
+          streak: u.stats?.currentStreak || 0,
+          totalCompletions
+        };
+      })
+    );
+
+    res.json(clients.filter(Boolean));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
