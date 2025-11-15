@@ -1,5 +1,5 @@
 import '@/index.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,15 @@ import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
+<<<<<<< HEAD
+import LevelUpAnimation from '@/components/LevelUpAnimation';
+
+=======
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
+const API = `${BACKEND_URL}/api`;
+>>>>>>> 1dfbc20e9e2cba9087d74f2944e33af01ded8b20
 import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
@@ -17,8 +26,16 @@ const UserDashboard = ({ user, onLogout }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [insights, setInsights] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(1);
+  const previousLevelRef = useRef(null);
 
+  // Initialize from localStorage on mount
   useEffect(() => {
+    const stored = localStorage.getItem('lastSeenLevel');
+    if (stored) {
+      previousLevelRef.current = parseInt(stored, 10);
+    }
     fetchDashboardData();
     
     // Set up auto-refresh every 30 seconds to capture real-time updates
@@ -46,6 +63,24 @@ const UserDashboard = ({ user, onLogout }) => {
         axios.get(`${API}/habits`)
       ]);
       
+      // Check for level up
+      const currentLevel = statsRes.data.level;
+      const lastSeenLevel = previousLevelRef.current;
+      
+      if (lastSeenLevel !== null && currentLevel > lastSeenLevel) {
+        setNewLevel(currentLevel);
+        setShowLevelUp(true);
+        localStorage.setItem('lastSeenLevel', currentLevel.toString());
+        previousLevelRef.current = currentLevel;
+      } else if (lastSeenLevel === null) {
+        // First time - just store the level without showing animation
+        localStorage.setItem('lastSeenLevel', currentLevel.toString());
+        previousLevelRef.current = currentLevel;
+      } else {
+        // Level didn't change
+        previousLevelRef.current = currentLevel;
+      }
+
       setStats(statsRes.data);
       setHabits(habitsRes.data.slice(0, 5));
       
@@ -85,6 +120,13 @@ const UserDashboard = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
+      {/* Level Up Animation Overlay */}
+      <LevelUpAnimation 
+        show={showLevelUp} 
+        newLevel={newLevel}
+        onComplete={() => setShowLevelUp(false)}
+      />
+
       <div className="space-y-6" data-testid="user-dashboard">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -109,44 +151,44 @@ const UserDashboard = ({ user, onLogout }) => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="card-hover" data-testid="stat-total-habits">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Habits</CardTitle>
+            <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
               <Target className="w-5 h-5 text-emerald-600" />
+              <CardTitle className="text-sm font-medium text-slate-600">Total Habits</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <div className="text-3xl font-bold text-slate-800">{stats?.total_habits || 0}</div>
               <p className="text-xs text-slate-500 mt-1">Active tracking</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-current-streak">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Current Streak</CardTitle>
+            <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
               <Flame className="w-5 h-5 text-orange-500" />
+              <CardTitle className="text-sm font-medium text-slate-600">Current Streak</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <div className="text-3xl font-bold streak-fire">{stats?.streak || 0} days</div>
               <p className="text-xs text-slate-500 mt-1">Keep it going!</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-total-xp">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total XP</CardTitle>
+            <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
               <Star className="w-5 h-5 text-yellow-500" />
+              <CardTitle className="text-sm font-medium text-slate-600">Total XP</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <div className="text-3xl font-bold text-slate-800 xp-glow">{stats?.xp || 0}</div>
               <p className="text-xs text-slate-500 mt-1">Level {stats?.level || 1}</p>
             </CardContent>
           </Card>
 
           <Card className="card-hover" data-testid="stat-completions">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Completions</CardTitle>
+            <CardHeader className="flex flex-col items-center gap-1 pb-2 text-center">
               <TrendingUp className="w-5 h-5 text-blue-600" />
+              <CardTitle className="text-sm font-medium text-slate-600">Completions</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="text-center">
               <div className="text-3xl font-bold text-slate-800">{stats?.total_completions || 0}</div>
               <p className="text-xs text-slate-500 mt-1">All time</p>
             </CardContent>
@@ -257,6 +299,17 @@ const UserDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Analytics Demo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics Preview</CardTitle>
+            <CardDescription>Demo analytics powered by mock data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AnalyticsDashboard demo={true} />
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
