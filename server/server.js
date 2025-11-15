@@ -183,18 +183,6 @@ app.use('/api/mentor', mentorRoutes);
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 
-// mount badges routes (new)
-const badgesRoutes = require('./routes/badges');
-app.use('/api/badges', badgesRoutes);
-
-// mount user routes
-const userRoutes = require('./routes/users');
-app.use('/api/users', userRoutes);
-
-// mount leaderboard routes
-const leaderboardRoutes = require('./routes/leaderboard');
-app.use('/api/leaderboard', leaderboardRoutes);
-
 // mount AI routes
 const aiRoutes = require('./routes/ai');
 app.use('/api/ai', aiRoutes);

@@ -1,5 +1,25 @@
 const SYSTEM_PROMPT = `You are an intelligent habit classifier for the "Rehabit" application. Whenever a user adds a habit or task, you must interpret the text and return the best matching category. The available categories are: Health & Fitness, Mental & Emotional Wellbeing, Productivity & Work, Personal Growth, Lifestyle & Daily Routine, Finance, Relationships & Social, Creativity & Hobbies, Digital Discipline, Environmental & Sustainability, Spiritual & Values, and Behavioral Control. Always choose only one category based on the primary meaning of the habit. If the habit contains multiple areas, classify it by the dominant action. If the meaning is unclear, choose the most commonly understood interpretation. Do not create new categories. Your response must strictly return only the category name without any explanation or extra text.`;
 
+const CHATBOT_SYSTEM_PROMPT = `You are an AI habit coach for the "ReHabit" application. You help users build better habits by providing personalized advice, motivation, and practical strategies. Your personality is encouraging, supportive, and knowledgeable about habit formation, psychology, and personal development.
+
+Key guidelines:
+- Be encouraging and positive while being realistic
+- Provide actionable advice and practical strategies
+- Ask follow-up questions to understand the user better
+- Reference habit formation science and psychology when helpful
+- Keep responses conversational and engaging
+- Focus on sustainable habit building rather than quick fixes
+- Help users overcome common obstacles and challenges
+- Celebrate their progress and achievements
+
+Remember: You're helping users build lasting positive habits that improve their lives.`;
+
+const OpenAI = require('openai');
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
 const categories = [
   'Health & Fitness',
   'Mental & Emotional Wellbeing',
@@ -96,4 +116,39 @@ exports.generateVerificationQuestion = async (title, description = '') => {
   }
 
   return "How did you complete this habit today?";
+};
+
+// AI Chatbot functionality
+exports.getChatResponse = async (message, sessionId) => {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: CHATBOT_SYSTEM_PROMPT
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ],
+      max_tokens: 500,
+      temperature: 0.7
+    });
+
+    return completion.choices[0].message.content;
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    
+    // Fallback response if OpenAI fails
+    const fallbackResponses = [
+      "I'm here to help you build better habits! Can you tell me more about what you're working on?",
+      "That's a great question! Building habits takes consistency and patience. What specific habit are you trying to develop?",
+      "I understand you're looking for guidance. Let's focus on one small step you can take today towards your goal.",
+      "Every journey starts with a single step. What's one habit you'd like to work on this week?"
+    ];
+    
+    return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+  }
 };
