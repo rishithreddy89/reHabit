@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, Target, Users, Trophy, Award, MessageCircle, User, LogOut, Zap, Settings, UserPlus, Inbox } from 'lucide-react';
+import { Home, Target, Users, Trophy, Award, MessageCircle, User, LogOut, Zap, Settings, UserPlus, Inbox, CreditCard } from 'lucide-react';
 import TopNavbar from '@/components/TopNavbar';
 
 const Layout = ({ children, user, onLogout, role = 'user' }) => {
@@ -12,6 +12,7 @@ const Layout = ({ children, user, onLogout, role = 'user' }) => {
     { path: '/user/habits', icon: Target, label: 'Habits' },
     { path: '/user/community', icon: Users, label: 'Community' },
     { path: '/user/mentors', icon: UserPlus, label: 'Mentors' },
+    { path: '/user/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { path: '/user/leaderboard', icon: Trophy, label: 'Leaderboard' },
     { path: '/user/badges', icon: Award, label: 'Badges' },
     { path: '/user/ai-chat', icon: MessageCircle, label: 'AI Chat' },

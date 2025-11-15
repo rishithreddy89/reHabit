@@ -8,9 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Star, Award, MapPin, UserCheck, MessageCircle, Calendar, ArrowLeft } from 'lucide-react';
+import { Star, Award, MapPin, UserCheck, MessageCircle, Calendar, ArrowLeft, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
+import MentorPlanSelector from '@/components/MentorPlanSelector';
 
 const MentorProfilePage = ({ user, onLogout }) => {
   const { mentorId } = useParams();
@@ -23,10 +24,26 @@ const MentorProfilePage = ({ user, onLogout }) => {
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [rating, setRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
+  const [showPlanSelector, setShowPlanSelector] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
 
   useEffect(() => {
     fetchMentorProfile();
+    checkSubscriptionAccess();
   }, [mentorId]);
+
+  const checkSubscriptionAccess = async () => {
+    try {
+      const response = await axios.get(`${API}/mentor-plans/${mentorId}/access`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      setHasActiveSubscription(response.data.hasAccess);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
 
   const fetchMentorProfile = async () => {
     try {
@@ -200,10 +217,27 @@ const MentorProfilePage = ({ user, onLogout }) => {
               </div>
 
               <div className="flex flex-col gap-2">
+                {/* Subscription Button */}
+                {hasActiveSubscription ? (
+                  <Badge className="bg-emerald-100 text-emerald-700 gap-1 py-2 px-4">
+                    <CreditCard className="w-4 h-4" />
+                    Subscribed
+                  </Badge>
+                ) : (
+                  <Button 
+                    className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90" 
+                    onClick={() => setShowPlanSelector(true)}
+                    data-testid="subscribe-btn"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Subscribe to Mentor
+                  </Button>
+                )}
+
                 {!userRequest ? (
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button className="gap-2" data-testid="send-request-btn">
+                      <Button variant="outline" className="gap-2" data-testid="send-request-btn">
                         <MessageCircle className="w-4 h-4" />
                         Send Request
                       </Button>
@@ -375,6 +409,18 @@ const MentorProfilePage = ({ user, onLogout }) => {
             )}
           </div>
         </div>
+
+        {/* Mentor Plan Selector Dialog */}
+        <MentorPlanSelector
+          open={showPlanSelector}
+          onClose={() => setShowPlanSelector(false)}
+          mentorId={mentorId}
+          mentorName={mentor.name}
+          onSuccess={() => {
+            checkSubscriptionAccess();
+            fetchMentorProfile();
+          }}
+        />
       </div>
     </Layout>
   );
