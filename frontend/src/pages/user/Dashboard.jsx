@@ -20,27 +20,54 @@ const UserDashboard = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Set up auto-refresh every 30 seconds to capture real-time updates
+    const interval = setInterval(fetchDashboardData, 30000);
+    
+    // Refresh when the tab becomes visible again (user comes back)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchDashboardData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
-      
-      const [statsRes, habitsRes, leaderboardRes, insightsRes] = await Promise.all([
-        axios.get(`${API}/users/stats`, config).catch(() => ({ data: { total_habits: 0, streak: 0, xp: 0, level: 1, total_completions: 0 } })),
-        axios.get(`${API}/habits`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/leaderboard`, config).catch(() => ({ data: [] })),
-        axios.get(`${API}/ai/insights`, config).catch(() => ({ data: { insights: '' } }))
+      const [statsRes, habitsRes] = await Promise.all([
+        axios.get(`${API}/users/stats`),
+        axios.get(`${API}/habits`)
       ]);
       
       setStats(statsRes.data);
       setHabits(habitsRes.data.slice(0, 5));
-      setLeaderboard(leaderboardRes.data.slice(0, 5));
-      setInsights(insightsRes.data.insights);
+      
+      // Try to fetch optional data
+      try {
+        const leaderboardRes = await axios.get(`${API}/users/leaderboard`);
+        setLeaderboard(leaderboardRes.data.slice(0, 5));
+      } catch (error) {
+        console.log('Leaderboard not available');
+        setLeaderboard([]);
+      }
+      
+      try {
+        const insightsRes = await axios.get(`${API}/users/insights`);
+        setInsights(insightsRes.data.insights);
+      } catch (error) {
+        console.log('Insights not available');
+        setInsights('');
+      }
     } catch (error) {
-      console.error('Dashboard load error:', error);
-      // Silently handle errors - dashboard will show with default/empty data
+      console.error('Failed to load dashboard data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -65,12 +92,18 @@ const UserDashboard = ({ user, onLogout }) => {
             <h1 className="text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Welcome back, {user.name}!</h1>
             <p className="text-slate-600 mt-1">Let's keep building those habits</p>
           </div>
-          <Link to="/user/habits">
-            <Button className="gap-2" data-testid="add-habit-btn">
-              <Plus className="w-4 h-4" />
-              Add Habit
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={fetchDashboardData} className="gap-2" data-testid="refresh-btn">
+              <TrendingUp className="w-4 h-4" />
+              Refresh
             </Button>
-          </Link>
+            <Link to="/user/habits">
+              <Button className="gap-2" data-testid="add-habit-btn">
+                <Plus className="w-4 h-4" />
+                Add Habit
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}
