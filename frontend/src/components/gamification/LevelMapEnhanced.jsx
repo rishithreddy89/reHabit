@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Lock, CheckCircle, Crown, Zap, Sparkles } from 'lucide-react';
+import { Star, Lock, CheckCircle, Crown, Zap, Sparkles, Trophy } from 'lucide-react';
 
 const LevelMap = ({ currentLevel = 13, maxLevel = 50 }) => {
   const mapRef = useRef(null);

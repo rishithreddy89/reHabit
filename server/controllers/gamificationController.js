@@ -92,6 +92,52 @@ const BADGES = {
   }
 };
 
+const ALL_BADGES = [
+  { badgeId: 'week_warrior', name: 'Week Warrior', description: 'Complete 7-day streak', icon: '🔥', rarity: 'common' },
+  { badgeId: 'month_master', name: 'Month Master', description: 'Complete 30-day streak', icon: '👑', rarity: 'rare' },
+  { badgeId: 'early_bird', name: 'Early Bird', description: 'Complete 50 habits before 8 AM', icon: '🌅', rarity: 'rare' },
+  { badgeId: 'centurion', name: 'Centurion', description: 'Complete 100 habits', icon: '💯', rarity: 'epic' },
+  { badgeId: 'ace', name: 'Ace', description: 'Reach Level 10', icon: '🎯', rarity: 'epic' },
+  { badgeId: 'conqueror', name: 'Conqueror', description: 'Reach Level 25', icon: '⚔️', rarity: 'legendary' },
+  { badgeId: 'legend', name: 'Legend', description: 'Reach Level 50', icon: '👑', rarity: 'legendary' },
+  { badgeId: 'rusher', name: 'Rusher', description: 'Complete 10 habits in one day', icon: '⚡', rarity: 'rare' },
+  { badgeId: 'mr_consistent', name: 'Mr. Consistent', description: 'Maintain 3 different 7-day streaks simultaneously', icon: '🎖️', rarity: 'epic' },
+  { badgeId: 'perfectionist', name: 'Perfectionist', description: 'Complete all daily habits for 7 consecutive days', icon: '✨', rarity: 'legendary' },
+  { badgeId: 'dawn_champion', name: 'Dawn Champion', description: 'Complete 100 early morning habits', icon: '🌄', rarity: 'epic' },
+  { badgeId: 'unstoppable', name: 'Unstoppable', description: 'Reach a 100-day streak on any habit', icon: '🚀', rarity: 'legendary' }
+];
+
+const SAMPLE_SHOP_ITEMS = [
+  { id: 'avatar_hat', title: 'Cool Hat', price: 100, description: 'A stylish hat for your avatar' },
+  { id: 'avatar_bg', title: 'Background: Sunset', price: 250, description: 'A warm sunset for your profile' },
+  { id: 'double_xp', title: 'Double XP (1 day)', price: 500, description: 'Earn double XP for 24 hours' }
+];
+
+const SAMPLE_LEADERBOARD = [
+  { userId: 'u1', name: 'Alice', level: 12, totalXP: 5400 },
+  { userId: 'u2', name: 'Bob', level: 10, totalXP: 4200 },
+  { userId: 'u3', name: 'You', level: 9, totalXP: 3800 }
+];
+
+const SAMPLE_PROFILE = (userId = 'anonymous') => ({
+  userId,
+  level: 9,
+  totalXP: 3800,
+  coins: 250,
+  avatar: { skin: 'default', accessories: [] },
+  habits: [
+    { _id: 'h1', title: 'Meditate', streak: 5, longestStreak: 12 },
+    { _id: 'h2', title: 'Run', streak: 2, longestStreak: 7 }
+  ],
+  badges: ALL_BADGES.slice(0, 2),
+  stats: { completedHabits: 120, longestStreak: 12 }
+});
+
+const SAMPLE_CHALLENGES = [
+  { _id: 'c1', title: '7-day streak challenge', description: 'Complete a habit 7 days in a row', joined: false, userProgress: 2, userCompleted: false },
+  { _id: 'c2', title: 'Early bird', description: 'Do a habit before 8 AM', joined: true, userProgress: 10, userCompleted: false }
+];
+
 // Get or create user gamification
 const getOrCreateUserGamification = async (userId) => {
   let userGamification = await UserGamification.findOne({ userId });
@@ -432,6 +478,64 @@ export const getLeaderboard = async (req, res) => {
   }
 };
 
+// Public / fallback endpoints returning sample data (safe, consistent ESM exports)
+export const getBadges = async (req, res) => {
+  try {
+    return res.json(ALL_BADGES);
+  } catch (error) {
+    console.error('getBadges error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPublicShopItems = async (req, res) => {
+  try {
+    return res.json({ items: SAMPLE_SHOP_ITEMS });
+  } catch (error) {
+    console.error('getPublicShopItems error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPublicLeaderboard = async (req, res) => {
+  try {
+    return res.json({ entries: SAMPLE_LEADERBOARD });
+  } catch (error) {
+    console.error('getPublicLeaderboard error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPublicProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id || req.query.userId || 'anonymous';
+    return res.json(SAMPLE_PROFILE(userId));
+  } catch (error) {
+    console.error('getPublicProfile error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getPublicChallenges = async (req, res) => {
+  try {
+    return res.json(SAMPLE_CHALLENGES);
+  } catch (error) {
+    console.error('getPublicChallenges error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const joinPublicChallenge = async (req, res) => {
+  try {
+    const challengeId = req.params.id || req.params.challengeId;
+    return res.json({ success: true, message: `Joined challenge ${challengeId}` });
+  } catch (error) {
+    console.error('joinPublicChallenge error', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Default export (keep named exports too)
 export default {
   processHabitCompletion,
   getUserGamification,
@@ -439,5 +543,11 @@ export default {
   purchaseShopItem,
   getActiveChallenges,
   joinChallenge,
-  getLeaderboard
+  getLeaderboard,
+  getBadges,
+  getPublicShopItems,
+  getPublicLeaderboard,
+  getPublicProfile,
+  getPublicChallenges,
+  joinPublicChallenge
 };
