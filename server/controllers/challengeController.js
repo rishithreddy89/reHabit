@@ -1,6 +1,6 @@
-const Challenge = require('../models/Challenge');
+import Challenge from '../models/Challenge.js';
 
-exports.createChallenge = async (req, res) => {
+const createChallenge = async (req, res) => {
   try {
     const { title, description, category, duration, startDate, communityId, difficulty } = req.body;
     
@@ -25,7 +25,7 @@ exports.createChallenge = async (req, res) => {
   }
 };
 
-exports.getChallenges = async (req, res) => {
+const getChallenges = async (req, res) => {
   try {
     const challenges = await Challenge.find({ isActive: true })
       .populate('creatorId', 'name avatar')
@@ -36,7 +36,7 @@ exports.getChallenges = async (req, res) => {
   }
 };
 
-exports.getChallenge = async (req, res) => {
+const getChallenge = async (req, res) => {
   try {
     const challenge = await Challenge.findById(req.params.id)
       .populate('creatorId', 'name avatar')
@@ -52,7 +52,7 @@ exports.getChallenge = async (req, res) => {
   }
 };
 
-exports.joinChallenge = async (req, res) => {
+const joinChallenge = async (req, res) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
     
@@ -75,7 +75,7 @@ exports.joinChallenge = async (req, res) => {
   }
 };
 
-exports.updateProgress = async (req, res) => {
+const updateProgress = async (req, res) => {
   try {
     const { progress } = req.body;
     const challenge = await Challenge.findById(req.params.id);
@@ -99,4 +99,12 @@ exports.updateProgress = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  createChallenge,
+  getChallenges,
+  getChallenge,
+  joinChallenge,
+  updateProgress
 };

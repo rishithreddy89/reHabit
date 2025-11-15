@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Flame, Target, Calendar, TrendingUp, CheckCircle, ArrowLeft, Star, Award, Brain } from 'lucide-react';
+import { Flame, Target, Calendar, TrendingUp, CheckCircle, ArrowLeft, Star, Award, Brain, Navigation, ChevronRight, Play, RotateCcw, BookOpen, Lightbulb, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
 
@@ -28,6 +28,11 @@ const HabitDetail = ({ user, onLogout }) => {
   });
   const [validationResult, setValidationResult] = useState(null);
   const [showValidationResult, setShowValidationResult] = useState(false);
+  const [showAIGuidance, setShowAIGuidance] = useState(false);
+  const [aiSteps, setAiSteps] = useState([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [loadingSteps, setLoadingSteps] = useState(false);
 
   // Check if habit was completed today
   const isCompletedToday = () => {
@@ -88,6 +93,57 @@ const HabitDetail = ({ user, onLogout }) => {
         toast.error('Failed to mark as complete');
       }
     }
+  };
+
+  const generateAISteps = async () => {
+    setLoadingSteps(true);
+    try {
+      const response = await axios.post(`${API}/ai/generate-steps`, {
+        habit_id: habitId,
+        title: habit.title,
+        description: habit.description,
+        category: habit.category,
+        difficulty: habit.difficulty
+      });
+      
+      setAiSteps(response.data.steps);
+      setCurrentStepIndex(0);
+      setCompletedSteps(new Set());
+      setShowAIGuidance(true);
+      toast.success('AI guidance generated! Follow the steps to complete your habit.');
+    } catch (error) {
+      console.error('Error generating AI steps:', error);
+      toast.error('Failed to generate AI guidance');
+    } finally {
+      setLoadingSteps(false);
+    }
+  };
+
+  const markStepComplete = (stepIndex) => {
+    const newCompletedSteps = new Set(completedSteps);
+    newCompletedSteps.add(stepIndex);
+    setCompletedSteps(newCompletedSteps);
+    
+    // Move to next step if current step is completed
+    if (stepIndex === currentStepIndex && stepIndex < aiSteps.length - 1) {
+      setCurrentStepIndex(stepIndex + 1);
+    }
+    
+    // If all steps completed, show complete button
+    if (newCompletedSteps.size === aiSteps.length) {
+      toast.success('🎉 All steps completed! Ready to mark habit as complete.');
+    }
+  };
+
+  const markStepIncomplete = (stepIndex) => {
+    const newCompletedSteps = new Set(completedSteps);
+    newCompletedSteps.delete(stepIndex);
+    setCompletedSteps(newCompletedSteps);
+  };
+
+  const resetAIGuidance = () => {
+    setCurrentStepIndex(0);
+    setCompletedSteps(new Set());
   };
 
   const handleSubmitAnswer = async () => {
@@ -178,6 +234,88 @@ const HabitDetail = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         )}
+
+        {/* AI Guidance Card */}
+        <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-slate-800">
+              <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-3 rounded-full shadow-lg">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold" style={{fontFamily: 'Space Grotesk'}}>
+                  AI-Powered Step-by-Step Guidance
+                </h3>
+                <p className="text-sm text-slate-600 mt-1 font-medium">
+                  Get personalized, AI-driven steps to successfully complete your habit
+                </p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="flex gap-3">
+              <Button 
+                onClick={generateAISteps} 
+                disabled={loadingSteps}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 px-6 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                data-testid="generate-ai-steps-btn"
+              >
+                {loadingSteps ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5" />
+                    Get AI Guidance
+                  </>
+                )}
+              </Button>
+              
+              {aiSteps.length > 0 && (
+                <Button 
+                  onClick={() => setShowAIGuidance(true)} 
+                  variant="outline"
+                  className="flex items-center gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 px-6 py-3 font-semibold transition-all duration-200 hover:border-purple-400"
+                >
+                  <BookOpen className="w-5 h-5" />
+                  View Steps ({completedSteps.size}/{aiSteps.length})
+                  <div className="flex gap-1 ml-2">
+                    {[...Array(aiSteps.length)].map((_, index) => (
+                      <div 
+                        key={index}
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          completedSteps.has(index) ? 'bg-emerald-500' : 'bg-slate-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </Button>
+              )}
+            </div>
+            
+            {/* Show quick preview when steps exist */}
+            {aiSteps.length > 0 && (
+              <div className="mt-4 p-4 bg-white/60 rounded-xl border border-purple-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-500" />
+                    <span className="text-sm font-medium text-slate-700">
+                      Progress: {completedSteps.size}/{aiSteps.length} steps completed
+                    </span>
+                  </div>
+                  <div className="w-24 bg-slate-200 rounded-full h-2">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: `${(completedSteps.size / aiSteps.length) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <div className="grid md:grid-cols-4 gap-6">
           <Card data-testid="stat-current-streak">
@@ -498,6 +636,275 @@ const HabitDetail = ({ user, onLogout }) => {
                 </Button>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* AI Step-by-Step Guidance Dialog */}
+        <Dialog open={showAIGuidance} onOpenChange={setShowAIGuidance}>
+          <DialogContent 
+            className="bg-gradient-to-br from-white to-slate-50 rounded-3xl shadow-2xl border-0 p-0 max-w-5xl mx-auto max-h-[95vh] overflow-hidden backdrop-blur-sm [&>button]:hidden"
+            data-testid="ai-guidance-dialog"
+            style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+          >
+            <DialogHeader className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-white relative">
+              {/* Custom Close Button */}
+              <button
+                onClick={() => setShowAIGuidance(false)}
+                className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all duration-200 hover:scale-110 backdrop-blur-sm group"
+                aria-label="Close AI Guidance"
+              >
+                <X className="w-5 h-5 text-white group-hover:text-purple-100 transition-colors duration-200" />
+              </button>
+              
+              <DialogTitle className="flex items-center gap-4 pr-16">
+                <div className="bg-white/20 p-3 rounded-full backdrop-blur-sm">
+                  <Brain className="w-10 h-10 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-3xl font-bold mb-2" style={{fontFamily: 'Space Grotesk'}}>AI Step-by-Step Guidance</h3>
+                  <p className="text-purple-100 text-lg">Follow these personalized steps to complete: <span className="font-semibold text-white">{habit.title}</span></p>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              {aiSteps.length > 0 && (
+                <div className="space-y-6">
+                  {/* Progress Overview */}
+                  <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 p-6 rounded-2xl border-2 border-purple-200 shadow-lg">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-2 rounded-full">
+                          <TrendingUp className="w-5 h-5 text-white" />
+                        </div>
+                        <h4 className="text-xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Progress Overview</h4>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={resetAIGuidance}
+                          className="text-xs bg-white/80 hover:bg-white border-purple-300 text-purple-700"
+                        >
+                          <RotateCcw className="w-3 h-3 mr-1" />
+                          Reset
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Enhanced Progress Bar */}
+                    <div className="relative">
+                      <div className="w-full bg-slate-200 rounded-full h-4 shadow-inner">
+                        <div 
+                          className="bg-gradient-to-r from-purple-500 via-blue-500 to-indigo-500 h-4 rounded-full transition-all duration-700 ease-out shadow-sm"
+                          style={{ 
+                            width: `${(completedSteps.size / aiSteps.length) * 100}%`,
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3)'
+                          }}
+                        ></div>
+                      </div>
+                      {/* Progress Indicator */}
+                      <div className="absolute -top-8 transition-all duration-700 ease-out" 
+                           style={{ left: `${(completedSteps.size / aiSteps.length) * 100}%`, transform: 'translateX(-50%)' }}>
+                        <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                          {Math.round((completedSteps.size / aiSteps.length) * 100)}%
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Progress Stats */}
+                    <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-500" />
+                        <span className="text-sm font-medium text-slate-700">
+                          {completedSteps.size} of {aiSteps.length} steps completed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[...Array(aiSteps.length)].map((_, index) => (
+                          <div 
+                            key={index}
+                            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                              completedSteps.has(index) 
+                                ? 'bg-emerald-500 shadow-sm' 
+                                : index === currentStepIndex 
+                                ? 'bg-blue-500 animate-pulse' 
+                                : 'bg-slate-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step Flow */}
+                  <div className="space-y-4">
+                    {aiSteps.map((step, index) => {
+                      const isCompleted = completedSteps.has(index);
+                      const isCurrent = index === currentStepIndex;
+                      const isAccessible = index <= currentStepIndex || isCompleted;
+                      
+                      return (
+                        <div key={index} className="relative">
+                          {/* Enhanced Connector Line */}
+                          {index < aiSteps.length - 1 && (
+                            <div className="absolute left-7 top-16 flex flex-col items-center z-0">
+                              <div className={`w-1 h-8 rounded-full transition-all duration-500 ${
+                                completedSteps.has(index) 
+                                  ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' 
+                                  : 'bg-gradient-to-b from-slate-300 to-slate-400'
+                              }`}></div>
+                              <ChevronRight className={`w-4 h-4 transform rotate-90 transition-all duration-500 ${
+                                completedSteps.has(index) ? 'text-emerald-500' : 'text-slate-400'
+                              }`} />
+                            </div>
+                          )}
+                          
+                          <div className={`
+                            p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-[1.02] 
+                            ${isCompleted 
+                              ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-300 shadow-lg' 
+                              : isCurrent 
+                              ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-xl ring-2 ring-blue-200'
+                              : isAccessible
+                              ? 'bg-gradient-to-br from-white to-slate-50 border-slate-300 hover:border-purple-300 hover:shadow-lg'
+                              : 'bg-slate-50 border-slate-200 opacity-60'
+                            }
+                          `}>
+                            <div className="flex items-start gap-4">
+                              {/* Step Number/Icon */}
+                              <div className={`
+                                flex-shrink-0 w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg border-3 shadow-lg transition-all duration-300
+                                ${isCompleted 
+                                  ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white border-emerald-400 shadow-emerald-200' 
+                                  : isCurrent 
+                                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white border-blue-400 shadow-blue-200 animate-pulse'
+                                  : isAccessible
+                                  ? 'bg-gradient-to-br from-white to-slate-100 text-slate-600 border-slate-300 hover:border-purple-400'
+                                  : 'bg-slate-200 text-slate-400 border-slate-200'
+                                }
+                              `}>
+                                {isCompleted ? (
+                                  <CheckCircle className="w-6 h-6" />
+                                ) : (
+                                  <span>{index + 1}</span>
+                                )}
+                              </div>
+                              
+                              {/* Step Content */}
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className={`font-semibold ${isCurrent ? 'text-blue-700' : 'text-slate-800'}`}>
+                                    {step.title}
+                                  </h5>
+                                  {isAccessible && (
+                                    <div className="flex gap-2">
+                                      {!isCompleted ? (
+                                        <Button 
+                                          size="sm" 
+                                          onClick={() => markStepComplete(index)}
+                                          className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-2 font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                                        >
+                                          <CheckCircle className="w-4 h-4 mr-1" />
+                                          Complete
+                                        </Button>
+                                      ) : (
+                                        <Button 
+                                          size="sm" 
+                                          variant="outline" 
+                                          onClick={() => markStepIncomplete(index)}
+                                          className="text-slate-600 border-slate-300 hover:bg-slate-50 px-4 py-2 transition-all duration-200"
+                                        >
+                                          <RotateCcw className="w-4 h-4 mr-1" />
+                                          Undo
+                                        </Button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <p className="text-slate-600 mb-3">{step.description}</p>
+                                
+                                {/* Step Details */}
+                                {step.tips && step.tips.length > 0 && (
+                                  <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-xl border-2 border-amber-200 mb-4 shadow-sm">
+                                    <h6 className="flex items-center gap-3 font-semibold text-amber-800 mb-3">
+                                      <div className="bg-amber-100 p-1.5 rounded-full">
+                                        <Lightbulb className="w-4 h-4 text-amber-600" />
+                                      </div>
+                                      Pro Tips:
+                                    </h6>
+                                    <ul className="text-sm text-amber-700 space-y-2">
+                                      {step.tips.map((tip, tipIndex) => (
+                                        <li key={tipIndex} className="flex items-start gap-3">
+                                          <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
+                                          <span className="leading-relaxed">{tip}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                                
+                                {step.duration && (
+                                  <div className="inline-flex items-center gap-2 text-sm text-slate-500">
+                                    <Calendar className="w-4 h-4" />
+                                    Estimated time: {step.duration}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Final Action */}
+                  {completedSteps.size === aiSteps.length && (
+                    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 p-8 rounded-3xl border-3 border-emerald-300 text-center shadow-xl animate-pulse" style={{ animation: 'pulse 2s infinite' }}>
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className="animate-bounce">
+                          <Star className="w-8 h-8 text-emerald-600" />
+                        </div>
+                        <h4 className="text-2xl font-bold text-emerald-700" style={{fontFamily: 'Space Grotesk'}}>All Steps Completed!</h4>
+                        <div className="animate-bounce" style={{ animationDelay: '0.1s' }}>
+                          <Star className="w-8 h-8 text-emerald-600" />
+                        </div>
+                      </div>
+                      <p className="text-emerald-700 mb-6 text-lg font-medium">
+                        🎉 Congratulations! You've followed all the AI-guided steps. Ready to mark your habit as complete?
+                      </p>
+                      <div className="flex gap-4 justify-center">
+                        <Button 
+                          onClick={() => {
+                            setShowAIGuidance(false);
+                            handleComplete();
+                          }}
+                          className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-200"
+                        >
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                          Complete Habit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowAIGuidance(false)}
+                          className="px-6 py-3 border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                        >
+                          Close Guidance
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {aiSteps.length === 0 && (
+                <div className="text-center py-12">
+                  <Brain className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+                  <p className="text-slate-500">Click "Get AI Guidance" to generate personalized steps for this habit.</p>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>

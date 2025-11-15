@@ -1,10 +1,10 @@
-const User = require('../models/User');
-const Habit = require('../models/Habit');
-const Community = require('../models/Community');
-const Challenge = require('../models/Challenge');
-const Completion = require('../models/Completion');
+import User from '../models/User.js';
+import Habit from '../models/Habit.js';
+import Community from '../models/Community.js';
+import Challenge from '../models/Challenge.js';
+import Completion from '../models/Completion.js';
 
-exports.getAnalytics = async (req, res) => {
+const getAnalytics = async (req, res) => {
   try {
     const [total_users, total_habits, total_communities, total_completions, total_challenges] = await Promise.all([
       User.countDocuments(),
@@ -31,7 +31,7 @@ exports.getAnalytics = async (req, res) => {
   }
 };
 
-exports.getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     res.json(users);
@@ -40,7 +40,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-exports.updateUser = async (req, res) => {
+const updateUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -58,7 +58,7 @@ exports.updateUser = async (req, res) => {
   }
 };
 
-exports.deleteUser = async (req, res) => {
+const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -76,7 +76,7 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-exports.getAllCommunities = async (req, res) => {
+const getAllCommunities = async (req, res) => {
   try {
     const communities = await Community.find()
       .populate('creatorId', 'name email')
@@ -87,7 +87,7 @@ exports.getAllCommunities = async (req, res) => {
   }
 };
 
-exports.updateCommunity = async (req, res) => {
+const updateCommunity = async (req, res) => {
   try {
     const community = await Community.findByIdAndUpdate(
       req.params.id,
@@ -105,7 +105,7 @@ exports.updateCommunity = async (req, res) => {
   }
 };
 
-exports.deleteCommunity = async (req, res) => {
+const deleteCommunity = async (req, res) => {
   try {
     const community = await Community.findByIdAndUpdate(
       req.params.id,
@@ -121,4 +121,14 @@ exports.deleteCommunity = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  getAnalytics,
+  getAllUsers,
+  updateUser,
+  deleteUser,
+  getAllCommunities,
+  updateCommunity,
+  deleteCommunity
 };

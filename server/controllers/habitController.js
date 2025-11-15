@@ -1,8 +1,8 @@
-const Habit = require('../models/Habit');
-const Completion = require('../models/Completion');
-const { classifyHabit, generateValidationQuestions, generateVerificationQuestion, validateHabitCompletion, generateEncouragement } = require('../services/aiService');
+import Habit from '../models/Habit.js';
+import Completion from '../models/Completion.js';
+import { classifyHabit, generateValidationQuestions, generateVerificationQuestion, validateHabitCompletion, generateEncouragement } from '../services/aiService.js';
 
-exports.createHabit = async (req, res) => {
+export const createHabit = async (req, res) => {
   try {
     const { title, description, frequency } = req.body;
     
@@ -25,7 +25,7 @@ exports.createHabit = async (req, res) => {
   }
 };
 
-exports.getHabits = async (req, res) => {
+export const getHabits = async (req, res) => {
   try {
     const habits = await Habit.find({ userId: req.user._id, isActive: true })
       .sort({ createdAt: -1 });
@@ -35,7 +35,7 @@ exports.getHabits = async (req, res) => {
   }
 };
 
-exports.getHabit = async (req, res) => {
+export const getHabit = async (req, res) => {
   try {
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user._id });
     if (!habit) {
@@ -47,7 +47,7 @@ exports.getHabit = async (req, res) => {
   }
 };
 
-exports.updateHabit = async (req, res) => {
+export const updateHabit = async (req, res) => {
   try {
     const habit = await Habit.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
@@ -63,7 +63,7 @@ exports.updateHabit = async (req, res) => {
   }
 };
 
-exports.deleteHabit = async (req, res) => {
+export const deleteHabit = async (req, res) => {
   try {
     const habit = await Habit.findOneAndUpdate(
       { _id: req.params.id, userId: req.user._id },
@@ -79,7 +79,7 @@ exports.deleteHabit = async (req, res) => {
   }
 };
 
-exports.completeHabit = async (req, res) => {
+export const completeHabit = async (req, res) => {
   try {
     const { verificationAnswer, notes, mood } = req.body;
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user._id });
@@ -140,7 +140,7 @@ exports.completeHabit = async (req, res) => {
 };
 
 // new: return recent completion logs for a habit (normalized for frontend)
-exports.getHabitLogs = async (req, res) => {
+export const getHabitLogs = async (req, res) => {
   try {
     const habit = await Habit.findOne({ _id: req.params.id, userId: req.user._id }).select('verificationQuestion');
     if (!habit) {
@@ -172,7 +172,7 @@ exports.getHabitLogs = async (req, res) => {
   }
 };
 
-exports.getHabitAnalytics = async (req, res) => {
+export const getHabitAnalytics = async (req, res) => {
   try {
     const completions = await Completion.find({
       habitId: req.params.id,
@@ -195,7 +195,7 @@ exports.getHabitAnalytics = async (req, res) => {
 };
 
 // Submit answer to current validation question
-exports.submitValidationAnswer = async (req, res) => {
+export const submitValidationAnswer = async (req, res) => {
   try {
     const { log_id, answer, question_index, all_questions } = req.body;
     
@@ -297,7 +297,7 @@ exports.submitValidationAnswer = async (req, res) => {
 };
 
 // new: validate a completion (frontend posts { habit_id, answer, log_id? })
-exports.validateCompletion = async (req, res) => {
+export const validateCompletion = async (req, res) => {
   try {
     const { habit_id, answer, log_id } = req.body;
     if (!habit_id || !answer) {
