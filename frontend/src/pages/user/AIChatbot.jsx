@@ -5,7 +5,8 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sparkles, Send, Bot, User } from 'lucide-react';
+import { Sparkles, Send, Bot, User, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
 
@@ -77,15 +78,31 @@ const AIChatbot = ({ user, onLogout }) => {
     }
   };
 
+  const navigate = useNavigate();
+
+  const handleClose = () => {
+    // Navigate back to dashboard (adjust if different desired behavior)
+    navigate('/user/dashboard');
+  };
+
   return (
     <Layout user={user} onLogout={onLogout} role="user">
       <div className="h-[calc(100vh-8rem)]" data-testid="ai-chatbot-page">
         <Card className="h-full flex flex-col">
           <CardHeader className="border-b">
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              AI Habit Coach
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-emerald-600" />
+                <span>AI Habit Coach</span>
+              </CardTitle>
+              <button
+                onClick={handleClose}
+                aria-label="Close AI chat"
+                className="h-9 w-9 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </CardHeader>
           
           <CardContent className="flex-1 overflow-y-auto p-4" data-testid="chat-messages">

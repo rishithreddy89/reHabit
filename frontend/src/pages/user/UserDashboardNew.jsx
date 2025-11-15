@@ -14,6 +14,7 @@ const UserDashboard = () => {
   const [habits, setHabits] = useState([]);
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [insights, setInsights] = useState(null);
+  const displayName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : '';
 
   useEffect(() => {
     loadDashboardData();
@@ -124,8 +125,8 @@ const UserDashboard = () => {
         className="flex items-center justify-between mb-8"
       >
         <div>
-          <h1 className="text-4xl font-bold text-white mb-2">
-            Welcome back, {user?.name}! 👋
+          <h1 className="text-4xl font-bold text-white mb-2 font-raleway">
+            Welcome back, {displayName}! 👋
           </h1>
           <p className="text-neura-gray">Let's make today count</p>
         </div>
