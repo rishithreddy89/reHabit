@@ -294,7 +294,7 @@ const CommunityPage = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6" data-testid="community-page">
+      <div className="space-y-6 mt-5" data-testid="community-page">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Community</h1>
@@ -303,9 +303,14 @@ const CommunityPage = ({ user, onLogout }) => {
           <div className="flex gap-3">
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="create-community-btn">
-                  <Plus className="w-4 h-4" />
-                  Create Community
+                <Button
+                  className="group gap-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-700 text-white px-5 py-3 rounded-xl shadow-sm hover:shadow-md transition-all border border-emerald-500/30"
+                  data-testid="create-community-btn"
+                >
+                  <span className="flex items-center gap-2">
+                    <Plus className="w-4 h-4 transition-transform group-hover:scale-110" />
+                    <span className="font-semibold tracking-wide">Create Community</span>
+                  </span>
                 </Button>
               </DialogTrigger>
             <DialogContent
@@ -371,9 +376,13 @@ const CommunityPage = ({ user, onLogout }) => {
 
           <Dialog open={challengeDialogOpen} onOpenChange={setChallengeDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-yellow-600 hover:bg-yellow-700 text-white">
-                <Trophy className="w-4 h-4" />
-                Create Challenge
+              <Button
+                className="group gap-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500 hover:from-amber-600 hover:via-yellow-600 hover:to-orange-600 text-white px-5 py-3 rounded-xl shadow-sm hover:shadow-md transition-all border border-amber-500/30"
+              >
+                <span className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 transition-transform group-hover:scale-110" />
+                  <span className="font-semibold tracking-wide">Create Challenge</span>
+                </span>
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-white text-slate-900 rounded-lg shadow-xl border border-slate-200 w-[580px] max-w-full">
@@ -589,14 +598,14 @@ const CommunityPage = ({ user, onLogout }) => {
                 <div className="mb-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 flex items-center justify-center shadow-sm">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
                       AI Recommended For You
                     </h3>
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                    <Badge className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white border-0 shadow-sm">
                       Based on your habits
                     </Badge>
                   </div>
@@ -606,15 +615,15 @@ const CommunityPage = ({ user, onLogout }) => {
                       const communityId = community._id || community.id;
                       const matchScore = community.matchScore || 85;
                       return (
-                        <Card key={communityId} className="card-hover shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 border-2 border-purple-200 bg-gradient-to-br from-white to-purple-50 relative overflow-hidden">
+                        <Card key={communityId} className="card-hover shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 border border-emerald-200 bg-gradient-to-br from-white via-emerald-50 to-teal-50 relative overflow-hidden rounded-xl">
                           <div className="absolute top-2 right-2 z-10">
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold border-0">
+                            <Badge className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 text-white text-xs font-bold border-0 shadow-sm">
                               {matchScore}% Match
                             </Badge>
                           </div>
                           <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                              <Users className="w-5 h-5 text-purple-600" />
+                              <Users className="w-5 h-5 text-emerald-600" />
                               {community.name}
                             </CardTitle>
                             <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
@@ -623,7 +632,7 @@ const CommunityPage = ({ user, onLogout }) => {
                             <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
                             <Button
                               onClick={() => handleJoin(communityId)}
-                              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white transition-all duration-200"
+                              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white transition-all duration-200 shadow-sm"
                               data-testid={`join-community-${communityId}`}
                             >
                               <UserPlus className="w-4 h-4 mr-2" />
@@ -648,7 +657,7 @@ const CommunityPage = ({ user, onLogout }) => {
               return (
                 <>
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 via-teal-400 to-cyan-400 flex items-center justify-center shadow-sm">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
@@ -670,10 +679,10 @@ const CommunityPage = ({ user, onLogout }) => {
                       {otherCommunities.map((community) => {
                         const communityId = community._id || community.id;
                         return (
-                          <Card key={communityId} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${communityId}`}>
+                          <Card key={communityId} className="card-hover shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all duration-200 border border-emerald-100 bg-white/60 backdrop-blur-sm rounded-xl" data-testid={`community-${communityId}`}>
                             <CardHeader>
                               <CardTitle className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-blue-600" />
+                                <Users className="w-5 h-5 text-emerald-600" />
                                 {community.name}
                               </CardTitle>
                               <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
@@ -682,7 +691,7 @@ const CommunityPage = ({ user, onLogout }) => {
                               <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
                               <Button
                                 onClick={() => handleJoin(communityId)}
-                                className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150"
+                                className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white transition-colors duration-150"
                                 data-testid={`join-community-${communityId}`}
                               >
                                 <UserPlus className="w-4 h-4 mr-2" />
@@ -724,7 +733,7 @@ const CommunityPage = ({ user, onLogout }) => {
                   const isParticipating = challenge.participants?.some(p => p.userId === user?.id || p.userId?._id === user?.id);
                   const daysLeft = Math.ceil((new Date(challenge.endDate) - new Date()) / (1000 * 60 * 60 * 24));
                   return (
-                  <Card key={challenge._id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`challenge-${challenge._id}`}>
+                  <Card key={challenge._id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200" data-testid={`challenge-${challenge._id}`}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Trophy className="w-5 h-5 text-yellow-600" />

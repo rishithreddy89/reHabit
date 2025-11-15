@@ -106,7 +106,7 @@ const PostCard = ({ post, onReact, onComment, token }) => {
       animate={{ opacity: 1, y: 0 }}
       className="mb-4"
     >
-      <Card className={`p-6 ${getSentimentColor(post.aiSentiment)}`}>
+      <Card className="p-6 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 border border-amber-200">
         {/* Header */}
         <div className="flex items-start gap-3 mb-4">
           <Avatar className="w-12 h-12 ring-2 ring-emerald-200">
@@ -525,7 +525,7 @@ const CommunityFeed = ({ communityId, token, user }) => {
       {/* Main feed column */}
       <div className="lg:col-span-2">
       {/* Create Post */}
-      <Card className="p-6 mb-6 bg-gradient-to-br from-white to-emerald-50 border-2 border-emerald-200">
+      <Card className="p-6 mb-6 bg-gradient-to-br from-white via-slate-50 to-slate-100 border border-slate-200 shadow-sm">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-emerald-600" />
           Share Your Progress

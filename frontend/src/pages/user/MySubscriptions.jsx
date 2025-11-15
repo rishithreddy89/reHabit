@@ -109,7 +109,7 @@ const MySubscriptions = ({ user, onLogout }) => {
   if (!loading && subscriptions.length === 0) {
     return (
       <Layout user={user} onLogout={onLogout} role="user">
-        <div className="space-y-6">
+        <div className="space-y-6 mt-5">
           <h1 className="text-3xl font-bold" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>My Subscriptions</h1>
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -130,7 +130,7 @@ const MySubscriptions = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6">
+      <div className="space-y-6 mt-5">
         <h1 className="text-3xl font-bold" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>My Subscriptions</h1>
         <p className="text-slate-600" style={{ fontFamily: 'Spectral, serif' }}>Manage your mentor subscriptions and track your progress</p>
 

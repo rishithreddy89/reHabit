@@ -105,7 +105,7 @@ const MentorsPage = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6" data-testid="mentors-page">
+      <div className="space-y-6 mt-5" data-testid="mentors-page">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

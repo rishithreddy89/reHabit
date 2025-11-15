@@ -228,61 +228,36 @@ const GamificationPage = ({ user, onLogout }) => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-2xl p-6 mb-6 text-white shadow-xl"
+          className="bg-white rounded-2xl p-6 mb-6 shadow-md text-slate-800"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-1">🎉 Welcome to Your Gamification Hub!</h2>
-              <p className="text-purple-100">
+            <div className="flex-1">
+              <h2 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>🎉 Welcome to Your Gamification Hub!</h2>
+              <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>
                 All data is loaded from your account. Complete habits to earn rewards!
               </p>
             </div>
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="text-6xl"
-            >
-              🏆
-            </motion.div>
+
+            {/* Quick stats */}
+            <div className="flex gap-2 ml-6">
+              <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center min-w-[88px]">
+                  <Star className="w-5 h-5 mb-0.5" />
+                  <div className="text-xl font-bold leading-snug">{gamificationData?.level || 1}</div>
+                  <div className="text-[10px] tracking-wide opacity-85">Level</div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-teal-500 to-cyan-500 text-white">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center min-w-[88px]">
+                  <Coins className="w-5 h-5 mb-0.5" />
+                  <div className="text-xl font-bold leading-snug">{gamificationData?.coins || 0}</div>
+                  <div className="text-[10px] tracking-wide opacity-85">Coins</div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </motion.div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-800 mb-2" style={{fontFamily: 'Space Grotesk'}}>
-              🎮 Gamification Hub
-            </h1>
-            <p className="text-slate-600">Level up your habit game!</p>
-          </div>
-
-          {/* Quick stats */}
-          <div className="flex gap-4">
-            <Card className="bg-gradient-to-br from-purple-500 to-pink-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-white">
-                  <Star className="w-6 h-6" />
-                  <div>
-                    <div className="text-2xl font-bold">{gamificationData?.level || 1}</div>
-                    <div className="text-xs">Level</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-yellow-400 to-orange-500">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-white">
-                  <Coins className="w-6 h-6" />
-                  <div>
-                    <div className="text-2xl font-bold">{gamificationData?.coins || 0}</div>
-                    <div className="text-xs">Coins</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
 
         {/* Main content tabs */}
         <Tabs defaultValue="overview" className="w-full">
@@ -358,7 +333,7 @@ const GamificationPage = ({ user, onLogout }) => {
 
             {/* Stats Overview */}
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-slate-800">📊 Your Stats</h2>
+              <h2 className="text-2xl font-bold text-slate-800">Your Stats</h2>
               <GamificationStats
                 stats={gamificationData?.stats}
                 level={gamificationData?.level}

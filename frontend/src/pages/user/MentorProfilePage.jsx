@@ -147,7 +147,7 @@ const MentorProfilePage = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6" data-testid="mentor-profile-page">
+      <div className="space-y-6 mt-5" data-testid="mentor-profile-page">
         {/* Back Button */}
         <Link to="/user/mentors">
           <Button variant="ghost" className="gap-2">

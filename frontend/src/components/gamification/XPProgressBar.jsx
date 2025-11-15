@@ -37,37 +37,33 @@ const XPProgressBar = ({
   }, [currentXP, displayXP]);
 
   return (
-    <Card className="overflow-hidden border-2 border-purple-200 shadow-lg">
-      <CardContent className="p-6 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
-        <div className="flex items-center justify-between mb-4">
+    <Card className="relative overflow-hidden shadow-lg bg-gradient-to-br from-blue-50 via-sky-100 to-blue-200 border border-blue-200">
+      {/* Blurred overlay filling full card */}
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-blue-200/40 via-sky-300/30 to-indigo-300/40 backdrop-blur-sm" />
+      <CardContent className="relative pt-16 pb-6 px-6">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-              className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center shadow-lg"
             >
               <Star className="w-6 h-6 text-white fill-white" />
             </motion.div>
-            
             <div>
-              <h3 className="text-2xl font-bold text-slate-800">
-                Level {level}
-              </h3>
-              <p className="text-sm text-slate-600">
-                {xpInCurrentLevel}/{100} XP
-              </p>
+              <h3 className="text-2xl font-bold text-slate-800">Level {level}</h3>
+              <p className="text-sm text-slate-600">{xpInCurrentLevel}/{100} XP</p>
             </div>
           </div>
-
           <motion.div
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
             className="text-right"
           >
-            <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               {displayXP.toLocaleString()}
             </div>
-            <div className="text-xs text-slate-500 flex items-center gap-1">
+            <div className="text-xs text-slate-500 flex items-center gap-1 justify-end">
               <TrendingUp className="w-3 h-3" />
               Total XP
             </div>
@@ -96,7 +92,7 @@ const XPProgressBar = ({
             animate={{ opacity: [0, 0.5, 0] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <div className="h-full bg-gradient-to-r from-purple-400 to-pink-400" 
+            <div className="h-full bg-gradient-to-r from-blue-400 to-indigo-400" 
                  style={{ width: `${progressPercent}%` }} 
             />
           </motion.div>
@@ -107,7 +103,7 @@ const XPProgressBar = ({
           <span className="text-xs text-slate-500">
             Level {level}
           </span>
-          <span className="text-xs font-semibold text-purple-600">
+          <span className="text-xs font-semibold text-blue-600">
             {100 - xpInCurrentLevel} XP to Level {level + 1}
           </span>
           <span className="text-xs text-slate-500">
@@ -125,7 +121,7 @@ const XPProgressBar = ({
               whileHover={{ scale: 1.1 }}
               className={`px-3 py-1 rounded-full text-xs font-semibold ${
                 level >= milestone
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
                   : 'bg-slate-200 text-slate-500'
               }`}
             >

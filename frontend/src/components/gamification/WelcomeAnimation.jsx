@@ -110,7 +110,7 @@ const WelcomeAnimation = ({ onClose }) => {
           ))}
         </div>
 
-        <Card className="relative w-full max-w-2xl mx-4 bg-gradient-to-br from-purple-600 via-pink-500 to-purple-600 border-4 border-white shadow-2xl overflow-hidden">
+        <Card className="relative w-full max-w-lg sm:max-w-xl mx-4 bg-gradient-to-br from-purple-600 via-pink-500 to-purple-600 border-4 border-white shadow-2xl overflow-hidden">
           {/* Close button */}
           <Button
             variant="ghost"
@@ -121,7 +121,7 @@ const WelcomeAnimation = ({ onClose }) => {
             <X className="w-5 h-5" />
           </Button>
 
-          <div className="p-8 md:p-12">
+          <div className="p-6 md:p-8">
             {/* Title Animation */}
             <motion.div
               className="text-center mb-8"
@@ -132,18 +132,18 @@ const WelcomeAnimation = ({ onClose }) => {
               <motion.div
                 className="inline-block mb-4"
                 animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.15, 1],
+                  rotate: [0, 8, -8, 0],
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Trophy className="w-20 h-20 text-yellow-300" />
+                <Trophy className="w-14 h-14 text-yellow-300" />
               </motion.div>
 
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
                 Welcome to Gamification!
               </h1>
-              <p className="text-purple-100 text-lg">
+              <p className="text-purple-100 text-base md:text-lg">
                 Your journey to habit mastery starts here
               </p>
             </motion.div>
