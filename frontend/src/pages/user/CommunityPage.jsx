@@ -93,7 +93,10 @@ const CommunityPage = ({ user, onLogout }) => {
                 Create Community
               </Button>
             </DialogTrigger>
-            <DialogContent data-testid="create-community-dialog">
+            <DialogContent
+              data-testid="create-community-dialog"
+              className="bg-white text-slate-900 rounded-lg shadow-xl border border-slate-200 w-[520px] max-w-full"
+            >
               <DialogHeader>
                 <DialogTitle>Create New Community</DialogTitle>
                 <DialogDescription>Start a group or challenge</DialogDescription>
