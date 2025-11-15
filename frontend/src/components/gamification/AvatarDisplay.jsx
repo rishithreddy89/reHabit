@@ -30,29 +30,37 @@ const AvatarDisplay = ({
 
   return (
     <Card className="overflow-hidden">
-      <CardContent className={`p-8 bg-gradient-to-br ${mood.color} relative`}>
-        {/* Background particles */}
+      <CardContent className={`relative px-8 pt-14 pb-8 bg-gradient-to-br from-green-50 via-emerald-50 to-green-100`}>
+        {/* Bubble background (light small blue bubbles) */}
         {animated && (
           <div className="absolute inset-0 overflow-hidden">
-            {[...Array(10)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-white/30 rounded-full"
-                style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  y: [0, -30, 0],
-                  opacity: [0, 1, 0],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: Math.random() * 2,
-                }}
-              />
-            ))}
+            {[...Array(16)].map((_, i) => {
+              const size = 20 + Math.random() * 30; // smaller bubbles
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full bg-gradient-to-br from-green-200 via-emerald-200 to-lime-200 opacity-30"
+                  style={{
+                    width: size,
+                    height: size,
+                    left: `${Math.random() * 100}%`,
+                    bottom: `${Math.random() * 100}%`,
+                    filter: 'blur(3px)'
+                  }}
+                  animate={{
+                    y: [0, -40 - Math.random() * 20, 0],
+                    opacity: [0.25, 0.5, 0.25],
+                    scale: [1, 1.07, 1]
+                  }}
+                  transition={{
+                    duration: 5 + Math.random() * 2,
+                    repeat: Infinity,
+                    delay: Math.random() * 2,
+                    ease: 'easeInOut'
+                  }}
+                />
+              );
+            })}
           </div>
         )}
 
@@ -125,27 +133,27 @@ const AvatarDisplay = ({
           </motion.div>
 
           {/* Evolution stage */}
-          <h3 className="text-white text-2xl font-bold mb-2">
+          <h3 className="text-emerald-700 text-2xl font-bold mb-2 drop-shadow">
             {evolution.name}
           </h3>
           
           {/* Mood and stats */}
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-2">
-            <mood.icon className="w-4 h-4 text-white" />
-            <span className="text-white text-sm font-semibold capitalize">
+          <div className="flex items-center gap-2 bg-white/40 backdrop-blur-sm rounded-full px-4 py-2 mb-2 border border-emerald-200">
+            <mood.icon className="w-4 h-4 text-emerald-600" />
+            <span className="text-emerald-700 text-sm font-semibold capitalize">
               {avatar.mood}
             </span>
           </div>
 
           {/* Level and Evolution progress */}
           <div className="flex gap-2 mt-4">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <span className="text-white text-xs font-semibold">
+            <div className="bg-white/40 backdrop-blur-sm rounded-full px-3 py-1 border border-emerald-200">
+              <span className="text-emerald-700 text-xs font-semibold">
                 Level {level}
               </span>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
-              <span className="text-white text-xs font-semibold">
+            <div className="bg-white/40 backdrop-blur-sm rounded-full px-3 py-1 border border-emerald-200">
+              <span className="text-emerald-700 text-xs font-semibold">
                 Stage {avatar.evolution}/5
               </span>
             </div>
@@ -156,10 +164,10 @@ const AvatarDisplay = ({
             {[1, 2, 3, 4, 5].map((stage) => (
               <div
                 key={stage}
-                className={`w-3 h-3 rounded-full ${
+                className={`w-3 h-3 rounded-full shadow ${
                   avatar.evolution >= stage
-                    ? 'bg-white'
-                    : 'bg-white/30'
+                    ? 'bg-gradient-to-br from-sky-200 via-cyan-200 to-blue-200'
+                    : 'bg-blue-100'
                 }`}
               />
             ))}

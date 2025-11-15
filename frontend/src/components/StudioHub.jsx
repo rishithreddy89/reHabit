@@ -77,7 +77,11 @@ const StudioHub = ({ user }) => {
                       const u = mockUsers.find(x=>x.id===id) || { name: id };
                       return (
                         <div key={id} className="text-center">
-                          <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm"><AvatarFallback className="bg-emerald-400 text-white">{u.name[0]}</AvatarFallback></Avatar>
+                          <Avatar className="w-9 h-9 ring-2 ring-blue-300 shadow-md shadow-blue-200/50 transition-transform hover:scale-105">
+                            <AvatarFallback className="bg-gradient-to-br from-blue-500 via-sky-500 to-cyan-500 text-white font-semibold">
+                              {u.name[0]}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="text-xs">{u.name}</div>
                         </div>
                       );
@@ -125,7 +129,9 @@ const StudioHub = ({ user }) => {
                   {(st.comments || []).map(c => (
                     <div key={c.id} className="flex items-start gap-3">
                       <div className="shrink-0">
-                        <Avatar className="w-8 h-8 ring-2 ring-white shadow-sm"><AvatarFallback className="bg-emerald-400 text-white">{(c.author||'G')[0]}</AvatarFallback></Avatar>
+                        <Avatar className="w-8 h-8 ring-2 ring-blue-300 shadow-md shadow-blue-200/50">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-500 via-sky-500 to-cyan-500 text-white text-xs font-semibold">{(c.author||'G')[0]}</AvatarFallback>
+                        </Avatar>
                       </div>
                       <div>
                         <div className="text-xs font-medium">{c.author}</div>

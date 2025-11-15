@@ -126,7 +126,7 @@ const UserDashboard = ({ user, onLogout }) => {
         onComplete={() => setShowLevelUp(false)}
       />
 
-      <div className="space-y-4 sm:space-y-6" data-testid="user-dashboard">
+      <div className="space-y-4 sm:space-y-6 mt-5" data-testid="user-dashboard">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>

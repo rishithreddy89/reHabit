@@ -59,7 +59,7 @@ const LeaderboardPage = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6" data-testid="leaderboard-page">
+      <div className="space-y-6 mt-5" data-testid="leaderboard-page">
         <div>
           <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>Leaderboard</h1>
           <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>See how you rank among the community</p>

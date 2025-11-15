@@ -59,7 +59,8 @@ const GamificationStats = ({ stats, level, totalXP, badges }) => {
           transition={{ delay: index * 0.1 }}
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
-            <CardContent className="p-4">
+            {/* Added extra top padding so icon circle doesn't touch top edge */}
+            <CardContent className="pt-6 pb-4 px-4">
               <div className="flex flex-col items-center text-center space-y-2">
                 <motion.div
                   className={`p-3 rounded-full bg-gradient-to-br ${stat.color}`}
