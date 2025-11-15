@@ -111,6 +111,8 @@ const UserDashboard = ({ user, onLogout }) => {
     );
   }
 
+  const displayName = user?.name ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : '';
+
   return (
     <Layout user={user} onLogout={onLogout} role="user">
       {/* Level Up Animation Overlay */}
@@ -124,8 +126,8 @@ const UserDashboard = ({ user, onLogout }) => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800" style={{fontFamily: 'Space Grotesk'}}>Welcome back, {user.name}!</h1>
-            <p className="text-slate-600 mt-1 text-sm sm:text-base">Let's keep building those habits</p>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 font-raleway" style={{ fontFamily: 'Raleway, sans-serif' }}>Welcome back, {displayName}!</h1>
+            <p className="text-slate-600 mt-1 text-sm sm:text-base font-merriweather" style={{ fontFamily: 'Merriweather, serif' }}>Let's keep building those habits</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchDashboardData} className="gap-2 flex-1 sm:flex-none" data-testid="refresh-btn">
