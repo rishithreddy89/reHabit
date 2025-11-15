@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { Trophy, Star, Coins, Target, Map, ShoppingBag } from 'lucide-react';
@@ -7,14 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
-import { 
-  initializeSampleGamificationData, 
-  SAMPLE_LEADERBOARD, 
-  SAMPLE_HABITS,
-  ENHANCED_SHOP_ITEMS 
-} from '@/data/sampleGamificationData';
-
-// Gamification components
 import XPProgressBar from '@/components/gamification/XPProgressBar';
 import LevelMap from '@/components/gamification/LevelMapEnhanced';
 import BadgeDisplay from '@/components/gamification/BadgeDisplay';
@@ -27,7 +19,7 @@ import LeaderboardUI from '@/components/gamification/LeaderboardUI';
 import GamificationStats from '@/components/gamification/GamificationStats';
 import WelcomeAnimation from '@/components/gamification/WelcomeAnimation';
 
-// Badge definitions (same as backend)
+// Badge definitions (same as backend) - kept as fallback/local catalog if backend doesn't return everything
 const ALL_BADGES = [
   { badgeId: 'week_warrior', name: 'Week Warrior', description: 'Complete 7-day streak', icon: '🔥', rarity: 'common' },
   { badgeId: 'month_master', name: 'Month Master', description: 'Complete 30-day streak', icon: '👑', rarity: 'rare' },
@@ -58,39 +50,74 @@ const GamificationPage = ({ user, onLogout }) => {
     localStorage.setItem('gamificationWelcomeSeen', 'true');
   };
 
+  // New dynamic resources
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [shopItems, setShopItems] = useState([]);
+  const [badges, setBadges] = useState([]);
+  const prevLevelRef = useRef(null);
+
+  // Helper: safely convert various response shapes to an array
+  const safeToArray = (maybeArrOrObj) => {
+    if (!maybeArrOrObj) return [];
+    if (Array.isArray(maybeArrOrObj)) return maybeArrOrObj;
+    if (typeof maybeArrOrObj === 'object') {
+      try {
+        // If it's an object of keyed items, return values
+        return Object.values(maybeArrOrObj);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   useEffect(() => {
+    // load all data
     fetchGamificationData();
     fetchChallenges();
+    fetchLeaderboard();
+    fetchShopItems();
+    fetchBadges();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchGamificationData = async () => {
+    setLoading(true);
     try {
-      // Initialize with sample data for demonstration
-      const sampleData = await initializeSampleGamificationData(user?._id);
-      
-      // Try to fetch real data
       const token = localStorage.getItem('token');
-      try {
-        const response = await axios.get(`${API}/gamification/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        // Merge real data with sample data (prioritize real data)
-        setGamificationData({
-          ...sampleData,
-          ...response.data,
-          habits: response.data.habits?.length > 0 ? response.data.habits : SAMPLE_HABITS,
-        });
-      } catch (apiError) {
-        // If API fails, use sample data
-        console.log('Using sample gamification data');
-        setGamificationData({
-          ...sampleData,
-          habits: SAMPLE_HABITS,
-        });
+      const response = await axios.get(`${API}/gamification/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const payload = response.data || {};
+
+      // if no habits provided, default to empty list (UI handles empty)
+      const unified = {
+        level: payload.level ?? 1,
+        totalXP: payload.totalXP ?? 0,
+        coins: payload.coins ?? 0,
+        avatar: payload.avatar ?? null,
+        habits: payload.habits ?? [],
+        // fallback to fetched badges state or local ALL_BADGES if backend omitted badges
+        badges: payload.badges ?? (badges.length ? badges : ALL_BADGES),
+        stats: payload.stats ?? {},
+        ...payload // include any extra fields
+      };
+
+      // detect level-up
+      const prevLevel = prevLevelRef.current ?? unified.level;
+      if (unified.level > prevLevel) {
+        setLevelUpData({ oldLevel: prevLevel, newLevel: unified.level, rewards: payload.rewards ?? {} });
+        setShowLevelUpModal(true);
       }
+      prevLevelRef.current = unified.level;
+
+      setGamificationData(unified);
+
+      // If backend returned badges/habits, keep them in local state too
+      if (unified.badges && unified.badges.length > 0) setBadges(unified.badges);
     } catch (error) {
-      console.error('Failed to fetch gamification data:', error);
-      toast.error('Failed to load gamification data');
+      console.error('Failed to fetch gamification profile:', error);
+      toast.error('Failed to load gamification profile');
     } finally {
       setLoading(false);
     }
@@ -102,9 +129,62 @@ const GamificationPage = ({ user, onLogout }) => {
       const response = await axios.get(`${API}/gamification/challenges`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setChallenges(response.data);
+      setChallenges(response.data || []);
     } catch (error) {
       console.error('Failed to fetch challenges:', error);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/gamification/leaderboard`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const raw = response?.data;
+      // accept several shapes: { entries: [...] } or [...] or { id: item, ... }
+      const arr = safeToArray(raw?.entries ?? raw);
+      setLeaderboard(arr);
+    } catch (error) {
+      // if endpoint missing, fallback to empty leaderboard to avoid runtime Object.entries errors
+      console.warn('Failed to fetch leaderboard, falling back to empty list', error);
+      setLeaderboard([]);
+    }
+  };
+
+  const fetchShopItems = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      // try the items endpoint first, then the shop root
+      let response;
+      try {
+        response = await axios.get(`${API}/gamification/shop/items`, { headers: { Authorization: `Bearer ${token}` } });
+      } catch {
+        response = await axios.get(`${API}/gamification/shop`, { headers: { Authorization: `Bearer ${token}` } });
+      }
+      const raw = response?.data;
+      const arr = safeToArray(raw?.items ?? raw);
+      setShopItems(arr);
+    } catch (error) {
+      console.warn('Failed to fetch shop items, using empty shop', error);
+      setShopItems([]);
+    }
+  };
+
+  const fetchBadges = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/gamification/badges`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const arr = safeToArray(response?.data);
+      // prefer server-provided badges when available, otherwise keep local catalog
+      if (arr.length > 0) setBadges(arr);
+      else setBadges(ALL_BADGES);
+    } catch (error) {
+      // If badges endpoint not available, fallback to local catalog
+      console.warn('Failed to fetch badges, using local catalog', error);
+      setBadges(ALL_BADGES);
     }
   };
 
@@ -135,7 +215,7 @@ const GamificationPage = ({ user, onLogout }) => {
 
   const topStreakHabits = gamificationData?.habits?.slice(0, 3) || [];
   const avgStreak = topStreakHabits.length > 0
-    ? Math.round(topStreakHabits.reduce((sum, h) => sum + h.streak, 0) / topStreakHabits.length)
+    ? Math.round(topStreakHabits.reduce((sum, h) => sum + (h.streak || 0), 0) / topStreakHabits.length)
     : 0;
 
   return (
@@ -144,7 +224,7 @@ const GamificationPage = ({ user, onLogout }) => {
       {showWelcome && <WelcomeAnimation onClose={handleCloseWelcome} />}
       
       <div className="space-y-6 pb-12">
-        {/* Welcome Banner with Sample Data Notice */}
+        {/* Welcome Banner */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -154,7 +234,7 @@ const GamificationPage = ({ user, onLogout }) => {
             <div>
               <h2 className="text-2xl font-bold mb-1">🎉 Welcome to Your Gamification Hub!</h2>
               <p className="text-purple-100">
-                You're viewing sample data to showcase all features. Complete habits to earn real rewards!
+                All data is loaded from your account. Complete habits to earn rewards!
               </p>
             </div>
             <motion.div
@@ -283,7 +363,7 @@ const GamificationPage = ({ user, onLogout }) => {
                 stats={gamificationData?.stats}
                 level={gamificationData?.level}
                 totalXP={gamificationData?.totalXP}
-                badges={gamificationData?.badges}
+                badges={badges.length ? badges : gamificationData?.badges}
               />
             </div>
           </TabsContent>
@@ -334,20 +414,20 @@ const GamificationPage = ({ user, onLogout }) => {
 
           {/* Shop Tab */}
           <TabsContent value="shop" className="mt-6">
-            <ShopUI user={user} />
+            <ShopUI user={user} shopItems={shopItems} />
           </TabsContent>
 
           {/* Badges Tab */}
           <TabsContent value="badges" className="mt-6">
             <BadgeDisplay
-              badges={gamificationData?.badges || []}
+              badges={badges.length ? badges : (gamificationData?.badges || [])}
               allBadges={ALL_BADGES}
             />
           </TabsContent>
 
           {/* Leaderboard Tab */}
           <TabsContent value="leaderboard" className="mt-6">
-            <LeaderboardUI currentUserId={user?._id} />
+            <LeaderboardUI currentUserId={user?._id} leaderboardData={Array.isArray(leaderboard) ? leaderboard : safeToArray(leaderboard)} />
           </TabsContent>
         </Tabs>
 

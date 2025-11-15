@@ -4,6 +4,7 @@ import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Apply auth middleware as you need; if you want some public endpoints remove protect for those routes
 router.use(protect);
 
 // User gamification data
@@ -12,7 +13,11 @@ router.post('/complete-habit', gamificationController.processHabitCompletion);
 
 // Shop
 router.get('/shop', gamificationController.getShopItems);
+router.get('/shop/items', gamificationController.getPublicShopItems); // explicit items endpoint expected by frontend
 router.post('/shop/purchase/:itemId', gamificationController.purchaseShopItem);
+
+// Badges (public/listing)
+router.get('/badges', gamificationController.getBadges);
 
 // Challenges
 router.get('/challenges', gamificationController.getActiveChallenges);
