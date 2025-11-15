@@ -1,14 +1,17 @@
-const express = require('express');
+
+import express from 'express';
+import communityController from '../controllers/communityController.js';
+import { protect } from '../middleware/auth.js';
+
 const router = express.Router();
-const communityController = require('../controllers/communityController');
-const { protect } = require('../middleware/auth');
 
-router.use(protect);
-
-router.post('/', communityController.createCommunity);
+// Public: allow browsing communities without authentication
 router.get('/', communityController.getCommunities);
 router.get('/:id', communityController.getCommunity);
-router.post('/:id/join', communityController.joinCommunity);
-router.post('/:id/leave', communityController.leaveCommunity);
 
-module.exports = router;
+// Protected: creating, joining, leaving requires authentication
+router.post('/', protect, communityController.createCommunity);
+router.post('/:id/join', protect, communityController.joinCommunity);
+router.post('/:id/leave', protect, communityController.leaveCommunity);
+
+export default router;

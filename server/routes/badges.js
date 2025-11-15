@@ -1,10 +1,11 @@
-const express = require('express');
+import express from 'express';
+import badgesController from '../controllers/badgesController.js';
+import { protect } from '../middleware/auth.js';
+
 const router = express.Router();
-const badgesController = require('../controllers/badgesController');
-const { protect } = require('../middleware/auth');
 
 router.use(protect);
 
 router.get('/', badgesController.getBadges);
 
-module.exports = router;
+export default router;
