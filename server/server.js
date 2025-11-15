@@ -163,6 +163,10 @@ app.use('/api/mentor', mentorRoutes);
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
 
+// mount AI routes
+const aiRoutes = require('./routes/ai');
+app.use('/api/ai', aiRoutes);
+
 // API route for admin analytics
 app.get('/api/admin/analytics', async (req, res) => {
   try {
