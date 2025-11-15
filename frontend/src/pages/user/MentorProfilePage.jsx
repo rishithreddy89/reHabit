@@ -12,6 +12,7 @@ import { Star, Award, MapPin, UserCheck, MessageCircle, Calendar, ArrowLeft, Cre
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
 import MentorPlanSelector from '@/components/MentorPlanSelector';
+import ChatBox from '@/components/ChatBox';
 
 const MentorProfilePage = ({ user, onLogout }) => {
   const { mentorId } = useParams();
@@ -311,6 +312,26 @@ const MentorProfilePage = ({ user, onLogout }) => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Chat Section - only visible when there is a request and not rejected */}
+        {userRequest && userRequest.status !== 'rejected' && (
+          <div>
+            {userRequest.status === 'pending' ? (
+              <Card className="bg-yellow-50 border-yellow-200">
+                <CardContent className="py-8 text-center">
+                  <p className="text-yellow-700">Chat will unlock once the mentor accepts your request.</p>
+                </CardContent>
+              </Card>
+            ) : userRequest.status === 'accepted' ? (
+              // ChatBox handles its own Card wrapper and socket lifecycle
+              <ChatBox
+                currentUser={user}
+                otherUser={mentor} // normalized mentor object with _id, name, avatar
+                requestStatus="accepted"
+              />
+            ) : null}
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* About */}

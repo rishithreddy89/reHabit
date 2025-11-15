@@ -7,14 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, ArrowLeft, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
+import ChatBox from '@/components/ChatBox';
 
 const MentorRequestsPage = ({ user, onLogout }) => {
   const [sentRequests, setSentRequests] = useState([]);
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedChat, setSelectedChat] = useState(null);
 
   useEffect(() => {
     fetchRequests();
@@ -114,41 +116,73 @@ const MentorRequestsPage = ({ user, onLogout }) => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid md:grid-cols-2 gap-6">
-                {sentRequests.map((request) => (
-                  <Card key={request._id} data-testid={`sent-request-${request._id}`}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={request.mentorId?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.mentorId?.name || 'Mentor')}&background=10b981&color=fff`}
-                            alt={request.mentorId?.name}
-                            className="w-12 h-12 rounded-full"
-                          />
-                          <div>
-                            <CardTitle className="text-lg">
-                              {request.mentorId?.name || 'Unknown Mentor'}
-                            </CardTitle>
-                            <p className="text-sm text-slate-500">
-                              {new Date(request.createdAt).toLocaleDateString()}
-                            </p>
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  {sentRequests.map((request) => (
+                    <Card key={request._id} data-testid={`sent-request-${request._id}`}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={request.mentorId?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.mentorId?.name || 'Mentor')}&background=10b981&color=fff`}
+                              alt={request.mentorId?.name}
+                              className="w-12 h-12 rounded-full"
+                            />
+                            <div>
+                              <CardTitle className="text-lg">
+                                {request.mentorId?.name || 'Unknown Mentor'}
+                              </CardTitle>
+                              <p className="text-sm text-slate-500">
+                                {new Date(request.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
                           </div>
+                          {getStatusBadge(request.status)}
                         </div>
-                        {getStatusBadge(request.status)}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {request.message && (
-                        <p className="text-sm text-slate-600 mb-4">{request.message}</p>
-                      )}
-                      <Link to={`/user/mentors/${request.mentorId._id}`}>
-                        <Button variant="outline" size="sm" className="w-full">
-                          View Profile
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardHeader>
+                      <CardContent>
+                        {request.message && (
+                          <p className="text-sm text-slate-600 mb-4">{request.message}</p>
+                        )}
+                        <div className="flex gap-2">
+                          <Link to={`/user/mentors/${request.mentorId._id}`} className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full">
+                              View Profile
+                            </Button>
+                          </Link>
+                          {request.status === 'accepted' && (
+                            <Button
+                              size="sm"
+                              className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+                              onClick={() => setSelectedChat(request)}
+                              data-testid={`chat-btn-${request._id}`}
+                            >
+                              <MessageCircle className="w-4 h-4 mr-2" />
+                              Chat
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="lg:sticky lg:top-6 lg:h-fit">
+                  {selectedChat ? (
+                    <ChatBox
+                      currentUser={user}
+                      otherUser={selectedChat.mentorId}
+                      requestStatus={selectedChat.status}
+                    />
+                  ) : (
+                    <Card className="bg-slate-50">
+                      <CardContent className="py-16 text-center">
+                        <MessageCircle className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                        <p className="text-slate-500">Select a mentor to start chatting</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </div>
             )}
           </TabsContent>
