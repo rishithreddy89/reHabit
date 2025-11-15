@@ -38,7 +38,11 @@ const AuthPage = ({ onLogin }) => {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await axios.post(`${API}${endpoint}`, formData);
+      // for login only send email + password (avoid sending role which can cause backend role mismatch)
+      const payload = isLogin
+        ? { email: formData.email, password: formData.password }
+        : { name: formData.name, email: formData.email, password: formData.password, role: formData.role };
+      const response = await axios.post(`${API}${endpoint}`, payload);
       
       toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
       onLogin(response.data.token, response.data.user);

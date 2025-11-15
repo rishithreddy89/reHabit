@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const Mentor = require('../models/Mentor');
 const Admin = require('../models/Admin');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -40,25 +39,29 @@ exports.register = async (req, res) => {
     const username = await generateUsername(name);
     const user = new User({
       username,
-      name, // ensure top-level `name` exists to satisfy model validation
+      name,
       email,
       password,
       role,
       profile: { fullName: name }
     });
 
+    // Initialize mentor-specific fields if role is mentor
+    if (role === 'mentor') {
+      user.mentorProfile = {
+        specialization: ['general'],
+        experience: '',
+        maxClients: 10,
+        currentClients: 0
+      };
+      user.bio = '';
+      console.log('Created user with mentor role and mentorProfile:', user._id);
+    }
+
     await user.save();
 
-    // create role-specific doc if needed
-    if (role === 'mentor') {
-      try {
-        const mentorDoc = new Mentor({ userId: user._id, bio: '', specialization: ['general'] });
-        await mentorDoc.save();
-      } catch (err) {
-        // non-fatal
-        console.warn('Failed to create mentor doc:', err.message);
-      }
-    } else if (role === 'admin') {
+    // Create admin doc if needed (separate collection)
+    if (role === 'admin') {
       try {
         const adminDoc = new Admin({ userId: user._id, permissions: ['all'] });
         await adminDoc.save();
