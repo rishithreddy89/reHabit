@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
 import LevelUpAnimation from '@/components/LevelUpAnimation';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import FriendsWidget from '@/components/FriendsWidget';
 import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
@@ -283,6 +284,11 @@ const UserDashboard = ({ user, onLogout }) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Friends Activity Widget - NEW */}
+          <div className="lg:col-span-2">
+            <FriendsWidget />
+          </div>
         </div>
 
         {/* AI Insights */}
