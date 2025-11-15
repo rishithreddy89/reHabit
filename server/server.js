@@ -4,6 +4,14 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 
+// try to load optional morgan logger
+let morgan = null;
+try {
+  morgan = require('morgan');
+} catch (err) {
+  console.warn('Optional dependency "morgan" not found. Install with "npm install morgan" to enable request logging.');
+}
+
 require('dotenv').config();
 
 const app = express();
@@ -44,6 +52,18 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 app.use(express.json());
+
+// use morgan if available, otherwise a minimal fallback logger in dev
+if (morgan) {
+  app.use(morgan('dev'));
+} else {
+  app.use((req, res, next) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`${req.method} ${req.originalUrl}`);
+    }
+    next();
+  });
+}
 
 const PORT = process.env.PORT || 4000;
 
@@ -201,3 +221,5 @@ connectDb().then(() => {
     console.log(`CORS origin allowed: ${CORS_ORIGIN}`);
   });
 });
+
+module.exports = app;
