@@ -177,6 +177,8 @@ app.use('/api/challenges', challengeRoutes);
 
 // mount mentor routes
 const mentorRoutes = require('./routes/mentor');
+app.use('/api/mentors', mentorRoutes);
+// add backward-compatible alias for older frontend calls that used singular "mentor"
 app.use('/api/mentor', mentorRoutes);
 
 // mount admin routes
