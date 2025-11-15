@@ -40,6 +40,7 @@ exports.register = async (req, res) => {
     const username = await generateUsername(name);
     const user = new User({
       username,
+      name, // ensure top-level `name` exists to satisfy model validation
       email,
       password,
       role,
