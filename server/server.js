@@ -141,6 +141,7 @@ import leaderboardRoutes from './routes/leaderboard.js';
 import aiRoutes from './routes/ai.js';
 import postRoutes from './routes/posts.js';
 import socialRoutes from './routes/social.js';
+import mentorPlanRoutes from './routes/mentorPlans.js';
 
 // Mount routes (use the imported ESM route variables — do not re-require)
 app.use('/api/auth', authRoutes);
@@ -157,6 +158,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/mentor-plans', mentorPlanRoutes);
 
 // API route for admin analytics
 app.get('/api/admin/analytics', async (req, res) => {

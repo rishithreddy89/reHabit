@@ -20,6 +20,7 @@ import ProfilePage from '@/pages/user/ProfilePage';
 import MentorsPage from './pages/user/MentorsPage';
 import MentorProfilePage from './pages/user/MentorProfilePage';
 import MentorRequestsPage from './pages/user/MentorRequestsPage';
+import MySubscriptions from './pages/user/MySubscriptions';
 
 // Mentor pages
 import MentorDashboard from '@/pages/mentor/MentorDashboard';
@@ -92,6 +93,7 @@ function App() {
         <Route path="/user/mentors" element={user && user.role === 'user' ? <MentorsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors/requests" element={user && user.role === 'user' ? <MentorRequestsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors/:mentorId" element={user && user.role === 'user' ? <MentorProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/subscriptions" element={user && user.role === 'user' ? <MySubscriptions user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
 
         {/* Mentor Routes */}
         <Route path="/mentor/dashboard" element={user && user.role === 'mentor' ? <MentorDashboard user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
