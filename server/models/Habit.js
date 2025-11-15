@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const habitSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -34,4 +34,5 @@ const habitSchema = new mongoose.Schema({
 
 habitSchema.index({ userId: 1, createdAt: -1 });
 
-module.exports = mongoose.model('Habit', habitSchema);
+const Habit = mongoose.model('Habit', habitSchema);
+export default Habit;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const mentorSchema = new mongoose.Schema({
   userId: { 
@@ -59,4 +59,5 @@ mentorSchema.methods.addMentee = async function(userId) {
   await this.save();
 };
 
-module.exports = mongoose.model('Mentor', mentorSchema);
+const Mentor = mongoose.model('Mentor', mentorSchema);
+export default Mentor;

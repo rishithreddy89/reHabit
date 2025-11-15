@@ -1,10 +1,10 @@
-const User = require('../models/User');
-const Habit = require('../models/Habit');
-const Completion = require('../models/Completion');
-const MentorAssignment = require('../models/MentorAssignment');
-const Message = require('../models/Message');
+import User from '../models/User.js';
+import Habit from '../models/Habit.js';
+import Completion from '../models/Completion.js';
+import MentorAssignment from '../models/MentorAssignment.js';
+import Message from '../models/Message.js';
 
-exports.getMyClients = async (req, res) => {
+const getMyClients = async (req, res) => {
   try {
     const assignments = await MentorAssignment.find({ 
       mentorId: req.user._id, 
@@ -17,7 +17,7 @@ exports.getMyClients = async (req, res) => {
   }
 };
 
-exports.getClientDetails = async (req, res) => {
+const getClientDetails = async (req, res) => {
   try {
     const assignment = await MentorAssignment.findOne({
       mentorId: req.user._id,
@@ -41,7 +41,7 @@ exports.getClientDetails = async (req, res) => {
   }
 };
 
-exports.sendMessage = async (req, res) => {
+const sendMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
 
@@ -57,7 +57,7 @@ exports.sendMessage = async (req, res) => {
   }
 };
 
-exports.getMessages = async (req, res) => {
+const getMessages = async (req, res) => {
   try {
     const messages = await Message.find({
       $or: [
@@ -72,7 +72,7 @@ exports.getMessages = async (req, res) => {
   }
 };
 
-exports.getMentorAnalytics = async (req, res) => {
+const getMentorAnalytics = async (req, res) => {
   try {
     const assignments = await MentorAssignment.find({ 
       mentorId: req.user._id, 
@@ -93,4 +93,12 @@ exports.getMentorAnalytics = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+};
+
+export default {
+  getMyClients,
+  getClientDetails,
+  sendMessage,
+  getMessages,
+  getMentorAnalytics
 };

@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
 const API = `${BACKEND_URL}/api`;
@@ -226,6 +227,17 @@ const UserDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
         )}
+        
+        {/* Analytics Demo */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics Preview</CardTitle>
+            <CardDescription>Demo analytics powered by mock data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AnalyticsDashboard demo={true} />
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
