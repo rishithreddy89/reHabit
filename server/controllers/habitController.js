@@ -215,13 +215,16 @@ exports.submitValidationAnswer = async (req, res) => {
     
     await completion.save();
 
-    // Check if we have all answers
-    const totalQuestions = all_questions ? all_questions.length : 3;
-    const hasAllAnswers = completion.allAnswers.length >= totalQuestions;
+    // Check if we have all 3 answers (strict requirement)
+    const totalQuestions = 3; // Always require exactly 3 questions
+    const hasAllAnswers = completion.allAnswers.length >= 3 && completion.allAnswers.every(answer => answer && answer.trim().length > 0);
 
     if (hasAllAnswers) {
       // All questions answered - perform final validation
       const habit = await Habit.findById(completion.habitId);
+      
+      console.log('Starting validation for habit:', habit.title);
+      console.log('User answers:', completion.allAnswers);
       
       const validationResult = await validateHabitCompletion(
         habit.title,
@@ -230,6 +233,8 @@ exports.submitValidationAnswer = async (req, res) => {
         completion.allAnswers
       );
 
+      console.log('Validation result:', validationResult);
+
       // Update completion with validation results
       completion.aiVerified = validationResult.validated;
       completion.aiConfidence = validationResult.confidence;
@@ -237,6 +242,8 @@ exports.submitValidationAnswer = async (req, res) => {
 
       const isSuccessfulCompletion = validationResult.confidence >= 80 && validationResult.validated;
       completion.isValidated = isSuccessfulCompletion;
+      
+      console.log('Is successful completion:', isSuccessfulCompletion);
       
       await completion.save();
 

@@ -21,13 +21,14 @@ const UserDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     fetchDashboardData();
     
-    // Set up auto-refresh every 30 seconds to capture real-time updates
-    const interval = setInterval(fetchDashboardData, 30000);
+    // Set up auto-refresh every 2 minutes to capture updates without being too aggressive
+    const interval = setInterval(fetchDashboardData, 120000);
     
     // Refresh when the tab becomes visible again (user comes back)
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        fetchDashboardData();
+        // Add a small delay to prevent rapid fire requests
+        setTimeout(fetchDashboardData, 1000);
       }
     };
     
@@ -49,12 +50,12 @@ const UserDashboard = ({ user, onLogout }) => {
       setStats(statsRes.data);
       setHabits(habitsRes.data.slice(0, 5));
       
-      // Try to fetch optional data
+      // Try to fetch optional data with individual error handling
       try {
         const leaderboardRes = await axios.get(`${API}/users/leaderboard`);
         setLeaderboard(leaderboardRes.data.slice(0, 5));
       } catch (error) {
-        console.log('Leaderboard not available');
+        console.log('Leaderboard not available:', error.message);
         setLeaderboard([]);
       }
       
@@ -62,12 +63,15 @@ const UserDashboard = ({ user, onLogout }) => {
         const insightsRes = await axios.get(`${API}/users/insights`);
         setInsights(insightsRes.data.insights);
       } catch (error) {
-        console.log('Insights not available');
+        console.log('Insights not available:', error.message);
         setInsights('');
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      // Don't show toast error on every auto-refresh failure to prevent spam
+      if (!document.hidden) {
+        toast.error('Failed to load dashboard data');
+      }
     } finally {
       setLoading(false);
     }
