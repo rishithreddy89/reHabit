@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import PlantGrowthCard from '@/components/PlantGrowthCard';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
 const API = `${BACKEND_URL}/api`;
@@ -25,11 +26,14 @@ const UserDashboard = ({ user, onLogout }) => {
 
   const fetchDashboardData = async () => {
     try {
+      const token = localStorage.getItem('token');
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      
       const [statsRes, habitsRes, leaderboardRes, insightsRes] = await Promise.all([
-        axios.get(`${API}/users/stats`),
-        axios.get(`${API}/habits`),
-        axios.get(`${API}/leaderboard`),
-        axios.get(`${API}/ai/insights`)
+        axios.get(`${API}/users/stats`, config).catch(() => ({ data: { total_habits: 0, streak: 0, xp: 0, level: 1, total_completions: 0 } })),
+        axios.get(`${API}/habits`, config).catch(() => ({ data: [] })),
+        axios.get(`${API}/leaderboard`, config).catch(() => ({ data: [] })),
+        axios.get(`${API}/ai/insights`, config).catch(() => ({ data: { insights: '' } }))
       ]);
       
       setStats(statsRes.data);
@@ -37,7 +41,8 @@ const UserDashboard = ({ user, onLogout }) => {
       setLeaderboard(leaderboardRes.data.slice(0, 5));
       setInsights(insightsRes.data.insights);
     } catch (error) {
-      toast.error('Failed to load dashboard data');
+      console.error('Dashboard load error:', error);
+      // Silently handle errors - dashboard will show with default/empty data
     } finally {
       setLoading(false);
     }
@@ -117,7 +122,13 @@ const UserDashboard = ({ user, onLogout }) => {
           </Card>
         </div>
 
+        {/* Plant Growth Visualization */}
         <div className="grid lg:grid-cols-3 gap-6">
+          {/* Plant Growth Card */}
+          <div className="lg:col-span-1">
+            <PlantGrowthCard userStreak={stats?.streak || 0} />
+          </div>
+
           {/* Today's Habits */}
           <div className="lg:col-span-2">
             <Card>
@@ -136,8 +147,10 @@ const UserDashboard = ({ user, onLogout }) => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {habits.map((habit) => (
-                      <Link key={habit.id} to={`/user/habits/${habit.id}`} data-testid={`habit-card-${habit.id}`}>
+                    {habits.map((habit, index) => {
+                      const habitKey = habit._id || habit.id || `${habit.title}-${index}`;
+                      return (
+                      <Link key={habitKey} to={`/user/habits/${habit._id || habit.id || ''}`} data-testid={`habit-card-${habitKey}`}>
                         <div className="p-4 border rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
                           <div className="flex items-center justify-between mb-2">
                             <h3 className="font-semibold text-slate-800">{habit.title}</h3>
@@ -155,13 +168,16 @@ const UserDashboard = ({ user, onLogout }) => {
                           </div>
                         </div>
                       </Link>
-                    ))}
+                      );})}
                   </div>
                 )}
               </CardContent>
             </Card>
           </div>
+        </div>
 
+        {/* Leaderboard Section */}
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Leaderboard Preview */}
           <Card>
             <CardHeader>
@@ -173,8 +189,10 @@ const UserDashboard = ({ user, onLogout }) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {leaderboard.map((leader, index) => (
-                  <div key={leader.id} className="flex items-center gap-3" data-testid={`leaderboard-entry-${index}`}>
+                {leaderboard.map((leader, index) => {
+                  const leaderKey = leader._id || leader.id || `${leader.name}-${index}`;
+                  return (
+                  <div key={leaderKey} className="flex items-center gap-3" data-testid={`leaderboard-entry-${index}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
                       index === 0 ? 'bg-yellow-100 text-yellow-700' :
                       index === 1 ? 'bg-slate-100 text-slate-700' :
@@ -188,7 +206,7 @@ const UserDashboard = ({ user, onLogout }) => {
                       <p className="text-xs text-slate-500">{leader.xp} XP</p>
                     </div>
                   </div>
-                ))}
+                  );})}
               </div>
             </CardContent>
           </Card>

@@ -187,6 +187,14 @@ app.use('/api/admin', adminRoutes);
 const aiRoutes = require('./routes/ai');
 app.use('/api/ai', aiRoutes);
 
+// mount user stats routes (was missing, caused 404 on /api/users/stats)
+const userRoutes = require('./routes/users');
+app.use('/api/users', userRoutes);
+
+// mount leaderboard routes (was missing, caused 404 on /api/leaderboard)
+const leaderboardRoutes = require('./routes/leaderboard');
+app.use('/api/leaderboard', leaderboardRoutes);
+
 // API route for admin analytics
 app.get('/api/admin/analytics', async (req, res) => {
   try {
