@@ -13,6 +13,7 @@ import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
 const API = `${BACKEND_URL}/api`;
+import { API } from '@/lib/config';
 
 const UserDashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState(null);
