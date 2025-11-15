@@ -74,47 +74,92 @@ export const SAMPLE_LEADERBOARD = [
   {
     userId: '1',
     name: 'Sarah Johnson',
-    level: 28,
-    totalXP: 2750,
-    coins: 550,
-    badgeCount: 8,
+    level: 95,
+    totalXP: 9450,
+    coins: 1890,
+    badgeCount: 12,
     avatar: '🏆'
   },
   {
     userId: '2',
     name: 'Mike Chen',
-    level: 24,
-    totalXP: 2350,
-    coins: 470,
-    badgeCount: 7,
+    level: 87,
+    totalXP: 8650,
+    coins: 1730,
+    badgeCount: 11,
     avatar: '⚡'
   },
   {
     userId: '3',
     name: 'Emma Rodriguez',
-    level: 22,
-    totalXP: 2150,
-    coins: 430,
-    badgeCount: 6,
+    level: 76,
+    totalXP: 7550,
+    coins: 1510,
+    badgeCount: 10,
     avatar: '🌟'
   },
   {
     userId: '4',
     name: 'James Wilson',
-    level: 19,
-    totalXP: 1850,
-    coins: 370,
-    badgeCount: 5,
+    level: 68,
+    totalXP: 6750,
+    coins: 1350,
+    badgeCount: 9,
     avatar: '🎯'
   },
   {
     userId: '5',
     name: 'Olivia Brown',
-    level: 17,
-    totalXP: 1650,
-    coins: 330,
-    badgeCount: 5,
+    level: 59,
+    totalXP: 5850,
+    coins: 1170,
+    badgeCount: 8,
     avatar: '💎'
+  },
+  {
+    userId: '6',
+    name: 'Liam Taylor',
+    level: 52,
+    totalXP: 5150,
+    coins: 1030,
+    badgeCount: 8,
+    avatar: '🔥'
+  },
+  {
+    userId: '7',
+    name: 'Sophia Anderson',
+    level: 45,
+    totalXP: 4450,
+    coins: 890,
+    badgeCount: 7,
+    avatar: '⭐'
+  },
+  {
+    userId: '8',
+    name: 'Noah Martinez',
+    level: 38,
+    totalXP: 3750,
+    coins: 750,
+    badgeCount: 6,
+    avatar: '🎮'
+  },
+  {
+    userId: '9',
+    name: 'Ava Garcia',
+    level: 31,
+    totalXP: 3050,
+    coins: 610,
+    badgeCount: 6,
+    avatar: '🌱'
+  },
+  {
+    userId: '10',
+    name: 'Ethan Davis',
+    level: 24,
+    totalXP: 2350,
+    coins: 470,
+    badgeCount: 5,
+    avatar: '🚀'
   },
   {
     userId: 'current', // This will be replaced with actual user
@@ -123,43 +168,52 @@ export const SAMPLE_LEADERBOARD = [
     totalXP: 1250,
     coins: 250,
     badgeCount: 4,
-    avatar: '🚀'
+    avatar: '🧑'
   },
   {
-    userId: '6',
-    name: 'Liam Taylor',
+    userId: '11',
+    name: 'Isabella Moore',
     level: 11,
     totalXP: 1050,
     coins: 210,
     badgeCount: 3,
-    avatar: '🔥'
+    avatar: '🌸'
   },
   {
-    userId: '7',
-    name: 'Sophia Anderson',
+    userId: '12',
+    name: 'Mason Lee',
     level: 9,
     totalXP: 850,
     coins: 170,
     badgeCount: 3,
-    avatar: '⭐'
+    avatar: '🎨'
   },
   {
-    userId: '8',
-    name: 'Noah Martinez',
+    userId: '13',
+    name: 'Charlotte White',
     level: 7,
     totalXP: 650,
     coins: 130,
     badgeCount: 2,
-    avatar: '🎮'
+    avatar: '📚'
   },
   {
-    userId: '9',
-    name: 'Ava Garcia',
+    userId: '14',
+    name: 'Lucas Harris',
     level: 5,
     totalXP: 450,
     coins: 90,
     badgeCount: 2,
-    avatar: '🌱'
+    avatar: '🎭'
+  },
+  {
+    userId: '15',
+    name: 'Amelia Clark',
+    level: 3,
+    totalXP: 250,
+    coins: 50,
+    badgeCount: 1,
+    avatar: '🌈'
   }
 ];
 

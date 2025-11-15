@@ -370,7 +370,7 @@ const GamificationPage = ({ user, onLogout }) => {
 
           {/* Level Map Tab */}
           <TabsContent value="levelmap" className="mt-6">
-            <LevelMap currentLevel={gamificationData?.level || 1} maxLevel={50} />
+            <LevelMap currentLevel={gamificationData?.level || 1} maxLevel={100} />
           </TabsContent>
 
           {/* Challenges Tab */}
