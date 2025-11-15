@@ -1,5 +1,5 @@
 import '@/index.css';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
+import LevelUpAnimation from '@/components/LevelUpAnimation';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
 const API = `${BACKEND_URL}/api`;
@@ -19,8 +20,16 @@ const UserDashboard = ({ user, onLogout }) => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [insights, setInsights] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(1);
+  const previousLevelRef = useRef(null);
 
+  // Initialize from localStorage on mount
   useEffect(() => {
+    const stored = localStorage.getItem('lastSeenLevel');
+    if (stored) {
+      previousLevelRef.current = parseInt(stored, 10);
+    }
     fetchDashboardData();
   }, []);
 
@@ -36,6 +45,24 @@ const UserDashboard = ({ user, onLogout }) => {
         axios.get(`${API}/ai/insights`, config).catch(() => ({ data: { insights: '' } }))
       ]);
       
+      // Check for level up
+      const currentLevel = statsRes.data.level;
+      const lastSeenLevel = previousLevelRef.current;
+      
+      if (lastSeenLevel !== null && currentLevel > lastSeenLevel) {
+        setNewLevel(currentLevel);
+        setShowLevelUp(true);
+        localStorage.setItem('lastSeenLevel', currentLevel.toString());
+        previousLevelRef.current = currentLevel;
+      } else if (lastSeenLevel === null) {
+        // First time - just store the level without showing animation
+        localStorage.setItem('lastSeenLevel', currentLevel.toString());
+        previousLevelRef.current = currentLevel;
+      } else {
+        // Level didn't change
+        previousLevelRef.current = currentLevel;
+      }
+
       setStats(statsRes.data);
       setHabits(habitsRes.data.slice(0, 5));
       setLeaderboard(leaderboardRes.data.slice(0, 5));
@@ -60,6 +87,13 @@ const UserDashboard = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
+      {/* Level Up Animation Overlay */}
+      <LevelUpAnimation 
+        show={showLevelUp} 
+        newLevel={newLevel}
+        onComplete={() => setShowLevelUp(false)}
+      />
+
       <div className="space-y-6" data-testid="user-dashboard">
         {/* Header */}
         <div className="flex items-center justify-between">
