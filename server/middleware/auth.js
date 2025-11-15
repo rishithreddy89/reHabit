@@ -6,8 +6,17 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 export const protect = async (req, res, next) => {
   try {
     let token;
+    
+    // Get token from multiple sources
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
+    } else if (req.body && req.body.token) {
+      token = req.body.token;
+    } else if (req.query && req.query.token) {
+      token = req.query.token;
+    } else if (req.headers.cookie) {
+      const match = req.headers.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('token='));
+      if (match) token = decodeURIComponent(match.split('=')[1]);
     }
 
     if (!token) {
@@ -23,7 +32,8 @@ export const protect = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Not authorized, token failed' });
+    console.error('Auth middleware error:', error.message);
+    res.status(401).json({ message: 'Not authorized, token failed', error: error.message });
   }
 };
 
@@ -35,3 +45,6 @@ export const restrictTo = (...roles) => {
     next();
   };
 };
+
+// Default export for compatibility
+export default protect;

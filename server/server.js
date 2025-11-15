@@ -154,6 +154,8 @@ import socialRoutes from './routes/social.js';
 import mentorPlanRoutes from './routes/mentorPlans.js';
 import chatRoutes from './routes/chat.js';
 import gamificationRoutes from './routes/gamification.js';
+import levelRoutes from './routes/levels.js';
+import worldRoutes from './routes/worlds.js';
 
 // Mount routes (use the imported ESM route variables — do not re-require)
 app.use('/api/auth', authRoutes);
@@ -172,6 +174,8 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/levels', levelRoutes);
+app.use('/api/worlds', worldRoutes);
 
 // Create HTTP server for Socket.IO
 const httpServer = createServer(app);

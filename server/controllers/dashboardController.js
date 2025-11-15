@@ -23,12 +23,17 @@ const getUserStats = async (req, res) => {
     const xp = (req.user && typeof req.user.xp === 'number') ? req.user.xp : (total_completions * 5);
     const level = Math.max(1, Math.floor(xp / 100) + 1);
 
+    // Calculate displayXP (XP relative to current level for progress bar)
+    const xpForCurrentLevel = (level - 1) * 100;
+    const displayXP = Math.max(0, xp - xpForCurrentLevel);
+
     return res.json({
       total_habits,
       streak,
       xp,
       level,
-      total_completions
+      total_completions,
+      displayXP  // <-- Add displayXP to response
     });
   } catch (error) {
     console.error('getUserStats error:', error);
