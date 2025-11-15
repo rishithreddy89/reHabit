@@ -153,6 +153,7 @@ import postRoutes from './routes/posts.js';
 import socialRoutes from './routes/social.js';
 import mentorPlanRoutes from './routes/mentorPlans.js';
 import chatRoutes from './routes/chat.js';
+import gamificationRoutes from './routes/gamification.js';
 
 // Mount routes (use the imported ESM route variables — do not re-require)
 app.use('/api/auth', authRoutes);
@@ -160,6 +161,7 @@ app.use('/api/habits', habitRoutes);
 app.use('/api/communities', communityRoutes);
 app.use('/api/badges', badgesRoutes);
 app.use('/api/challenges', challengeRoutes);
+app.use('/api/gamification', gamificationRoutes);
 app.use('/api/mentors', mentorRoutes);
 // backward-compatible alias
 app.use('/api/mentor', mentorRoutes);

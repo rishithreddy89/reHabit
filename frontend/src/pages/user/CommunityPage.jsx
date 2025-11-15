@@ -55,26 +55,34 @@ const CommunityPage = ({ user, onLogout }) => {
 
   const fetchCommunities = async () => {
     try {
-      const response = await axios.get(`${API}/communities`);
+      const token = localStorage.getItem('token');
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const response = await axios.get(`${API}/communities`, config);
       const data = response.data?.communities ?? response.data ?? [];
+      console.log('Fetched communities from backend:', data.length);
       if (!data || (Array.isArray(data) && data.length === 0)) {
         const demoCommunities = demoStore.getCommunities();
-        const mockRecommendations = mockCommunities.filter(mc => 
-          ['Morning Risers', 'Focus Hour', 'Evening Walkers'].includes(mc.name) &&
+        // Include all mock communities with AI match scores
+        const allMockCommunities = mockCommunities.filter(mc => 
           !demoCommunities.find(dc => dc.name === mc.name)
         );
-        setCommunities([...demoCommunities, ...mockRecommendations]);
+        setCommunities([...demoCommunities, ...allMockCommunities]);
       } else {
-        setCommunities(data);
+        // Merge backend data with mock communities
+        const allMockCommunities = mockCommunities.filter(mc => 
+          !data.find(dc => dc.name === mc.name)
+        );
+        setCommunities([...data, ...allMockCommunities]);
       }
     } catch (error) {
+      console.error('Failed to load communities:', error.response?.data || error.message);
       if (error?.response?.status === 401 || !error?.response) {
         const demoCommunities = demoStore.getCommunities();
-        const mockRecommendations = mockCommunities.filter(mc => 
-          ['Morning Risers', 'Focus Hour', 'Evening Walkers'].includes(mc.name) &&
+        // Include all mock communities with AI match scores
+        const allMockCommunities = mockCommunities.filter(mc => 
           !demoCommunities.find(dc => dc.name === mc.name)
         );
-        setCommunities([...demoCommunities, ...mockRecommendations]);
+        setCommunities([...demoCommunities, ...allMockCommunities]);
       } else {
         toast.error('Failed to load communities');
       }
@@ -125,7 +133,16 @@ const CommunityPage = ({ user, onLogout }) => {
       return;
     }
     try {
-      await axios.post(`${API}/challenges`, challengeData);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please sign in to create a challenge');
+        return;
+      }
+      console.log('Creating challenge:', challengeData);
+      const response = await axios.post(`${API}/challenges`, challengeData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Challenge created:', response.data);
       toast.success('Challenge created!');
       setChallengeDialogOpen(false);
       setChallengeData({
@@ -137,16 +154,21 @@ const CommunityPage = ({ user, onLogout }) => {
         duration: 30,
         startDate: new Date().toISOString().split('T')[0]
       });
+      // Refresh challenges list
+      await fetchChallenges();
     } catch (error) {
+      console.error('Challenge creation error:', error.response?.data || error.message);
       toast.error(error.response?.data?.message || 'Failed to create challenge');
     }
   };
 
   const handleJoin = async (communityId) => {
+    console.log('Attempting to join community:', communityId);
     const community = communities.find(c => (c._id || c.id) === communityId);
     const isMockCommunity = community && !community._id && community.id;
     
     if (isMockCommunity) {
+      console.log('Joining mock community:', community.name);
       demoStore.joinCommunity(communityId);
       setCommunities(prev => prev.map(c => {
         const cId = c._id || c.id;
@@ -156,17 +178,27 @@ const CommunityPage = ({ user, onLogout }) => {
         if (userId && !nextMembers.includes(userId)) nextMembers.push(userId);
         return { ...c, members: nextMembers };
       }));
-      toast.success('Joined community (demo)');
+      toast.success('Joined community!');
       return;
     }
 
     try {
-      await axios.post(`${API}/communities/${communityId}/join`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Please sign in to join this community');
+        return;
+      }
+      console.log('Joining backend community with token');
+      await axios.post(`${API}/communities/${communityId}/join`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Joined community!');
       fetchCommunities();
     } catch (error) {
+      console.error('Join error:', error.response?.data || error.message);
       const status = error?.response?.status;
       if (!error?.response || (status && status >= 500)) {
+        console.log('Backend error, using demo mode');
         demoStore.joinCommunity(communityId);
         setCommunities(prev => prev.map(c => {
           const cId = c._id || c.id;
@@ -176,13 +208,13 @@ const CommunityPage = ({ user, onLogout }) => {
           if (userId && !nextMembers.includes(userId)) nextMembers.push(userId);
           return { ...c, members: nextMembers };
         }));
-        toast.success('Joined community (demo)');
+        toast.success('Joined community!');
         return;
       }
       if (status === 401 || status === 403) {
         toast.error('Please sign in to join this community');
       } else {
-        toast.error('Failed to join community');
+        toast.error(error.response?.data?.message || 'Failed to join community');
       }
     }
   };
@@ -228,10 +260,23 @@ const CommunityPage = ({ user, onLogout }) => {
 
   const fetchChallenges = async () => {
     try {
-      const response = await axios.get(`${API}/challenges`);
-      setAllChallenges(response.data);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('No token found, challenges may not load');
+        setAllChallenges([]);
+        setChallengesLoading(false);
+        return;
+      }
+      const response = await axios.get(`${API}/challenges`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = Array.isArray(response.data) ? response.data : response.data?.challenges || [];
+      console.log('Fetched challenges:', data.length, data);
+      setAllChallenges(data);
     } catch (error) {
-      console.error('Failed to load challenges:', error);
+      console.error('Failed to load challenges:', error.response?.data || error.message);
+      // Set empty array on error instead of leaving it undefined
+      setAllChallenges([]);
     } finally {
       setChallengesLoading(false);
     }
@@ -487,14 +532,19 @@ const CommunityPage = ({ user, onLogout }) => {
           </TabsContent>
 
           <TabsContent value="groups" className="mt-6">
-            {/* My Groups Section */}
+            {/* My Communities Section */}
             {(() => {
               const joinedGroups = communities.filter(c => isJoinedCommunity(c));
               return joinedGroups.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                    <Users className="w-6 h-6 text-emerald-600" />
-                    My Groups ({joinedGroups.length})
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    My Communities
+                    <span className="ml-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+                      {joinedGroups.length}
+                    </span>
                   </h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {joinedGroups.map((community) => {
@@ -526,67 +576,127 @@ const CommunityPage = ({ user, onLogout }) => {
               );
             })()}
 
-            {/* All Communities Section */}
-            <h3 className="text-xl font-bold text-slate-800 mb-4">All Communities</h3>
-            {communities.length === 0 ? (
-              <Card>
-                <CardContent className="py-12">
-                  <div className="text-center">
-                    <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">No communities yet</h3>
-                    <p className="text-slate-500 mb-4">Create your first community!</p>
+            {/* AI Recommended For You Section */}
+            {(() => {
+              const unjoinedCommunities = communities.filter(c => !isJoinedCommunity(c));
+              // Sort by matchScore (AI recommendation) and take top 6
+              const recommendedCommunities = unjoinedCommunities
+                .filter(c => c.matchScore && c.matchScore >= 85)
+                .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
+                .slice(0, 6);
+              
+              return recommendedCommunities.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                      </div>
+                      AI Recommended For You
+                    </h3>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                      Based on your habits
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {communities.map((community) => {
-                  const communityId = community._id || community.id;
-                  const isJoined = isJoinedCommunity(community);
-                  return (
-                    <Card key={communityId} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${communityId}`}>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Users className="w-5 h-5 text-emerald-600" />
-                          {community.name}
-                        </CardTitle>
-                        <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-2">
-                        <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                        {isJoined ? (
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              className="flex-1 border-emerald-300 hover:bg-emerald-50 text-emerald-700"
-                              onClick={() => exploreCommunity(communityId)}
-                            >
-                              Explore
-                            </Button>
-                            <Button
-                              variant="outline"
-                              disabled
-                              className="flex-1 opacity-70 cursor-not-allowed"
-                            >
-                              Joined ✓
-                            </Button>
+                  <p className="text-sm text-slate-600 mb-4">Communities that match your interests and activity patterns</p>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {recommendedCommunities.map((community) => {
+                      const communityId = community._id || community.id;
+                      const matchScore = community.matchScore || 85;
+                      return (
+                        <Card key={communityId} className="card-hover shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-200 border-2 border-purple-200 bg-gradient-to-br from-white to-purple-50 relative overflow-hidden">
+                          <div className="absolute top-2 right-2 z-10">
+                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold border-0">
+                              {matchScore}% Match
+                            </Badge>
                           </div>
-                        ) : (
-                          <Button
-                            onClick={() => handleJoin(communityId)}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white transition-colors duration-150"
-                            data-testid={`join-community-${communityId}`}
-                          >
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Join Group
-                          </Button>
-                        )}
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <Users className="w-5 h-5 text-purple-600" />
+                              {community.name}
+                            </CardTitle>
+                            <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
+                            <Button
+                              onClick={() => handleJoin(communityId)}
+                              className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white transition-all duration-200"
+                              data-testid={`join-community-${communityId}`}
+                            >
+                              <UserPlus className="w-4 h-4 mr-2" />
+                              Join Group
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Discover More Section - Lower match scores */}
+            {(() => {
+              const unjoinedCommunities = communities.filter(c => !isJoinedCommunity(c));
+              const otherCommunities = unjoinedCommunities
+                .filter(c => !c.matchScore || c.matchScore < 85)
+                .slice(0, 9);
+              
+              return (
+                <>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    Discover More
+                  </h3>
+                  {otherCommunities.length === 0 ? (
+                    <Card>
+                      <CardContent className="py-12">
+                        <div className="text-center">
+                          <Users className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                          <h3 className="text-lg font-semibold text-slate-700 mb-2">You've explored all communities!</h3>
+                          <p className="text-slate-500 mb-4">Create a new community to connect with more people.</p>
+                        </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
-              </div>
-            )}
+                  ) : (
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {otherCommunities.map((community) => {
+                        const communityId = community._id || community.id;
+                        return (
+                          <Card key={communityId} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${communityId}`}>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Users className="w-5 h-5 text-blue-600" />
+                                {community.name}
+                              </CardTitle>
+                              <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
+                              <Button
+                                onClick={() => handleJoin(communityId)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white transition-colors duration-150"
+                                data-testid={`join-community-${communityId}`}
+                              >
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Join Group
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="studios" className="mt-6">

@@ -24,9 +24,14 @@ const habitSchema = new mongoose.Schema({
   },
   frequency: { type: String, enum: ['daily', 'weekly'], default: 'daily' },
   difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+  
+  // Gamification - Streak tracking
   streak: { type: Number, default: 0 },
+  longestStreak: { type: Number, default: 0 },
+  lastCompletedDate: { type: Date }, // Store date only for streak calculation
+  lastCompletedAt: { type: Date }, // Full timestamp
+  
   total_completions: { type: Number, default: 0 },
-  lastCompletedAt: { type: Date },
   isActive: { type: Boolean, default: true },
   aiGenerated: { type: Boolean, default: false },
   verificationQuestion: { type: String, default: '' }
