@@ -128,6 +128,8 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout }) => {
             </div>
             <nav className="p-4 flex flex-col gap-2 overflow-y-auto">
               {items.map((item) => {
+                // Remove AI Chat from mobile drawer; will be accessed via floating button
+                if (item.label === 'AI Chat') return null;
                 const Icon = item.icon;
                 return (
                   <Link
