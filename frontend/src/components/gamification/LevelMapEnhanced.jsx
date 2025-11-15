@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Lock, CheckCircle, Crown, Zap, Sparkles, Trophy } from 'lucide-react';
 
-const LevelMap = ({ currentLevel = 13, maxLevel = 50 }) => {
+const LevelMap = ({ currentLevel = 13, maxLevel = 100 }) => {
   const mapRef = useRef(null);
   const [characterPosition, setCharacterPosition] = useState(currentLevel);
   const [showLevelUpEffect, setShowLevelUpEffect] = useState(false);

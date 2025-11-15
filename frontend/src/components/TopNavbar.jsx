@@ -71,7 +71,7 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
     <>
       <div className="sticky top-0 z-40 w-full px-4 pt-4">
         <div className="mx-auto max-w-6xl">
-          <div className="flex h-14 items-center justify-between rounded-full border border-slate-200/70 bg-white/80 px-3 shadow-[0_10px_30px_rgba(0,0,0,0.06)] backdrop-blur supports-[backdrop-filter]:bg-white/80">
+          <div className="flex h-14 items-center justify-between rounded-full border border-emerald-400/30 bg-gradient-to-br from-emerald-500 to-teal-600 px-3 backdrop-blur">
             {/* Left: Hamburger Menu (Mobile) + Brand */}
             <div className="flex items-center gap-2">
               <Button
@@ -85,20 +85,20 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
               </Button>
               {/* Brand */}
               <Link to={brandHref} className="flex items-center gap-2 px-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-emerald-600">
                   <Zap className="h-5 w-5" />
                 </span>
-                <span className="text-lg font-semibold tracking-tight text-slate-900" style={{ fontFamily: 'Space Grotesk' }}>
+                <span className="text-lg font-semibold tracking-tight text-white" style={{ fontFamily: 'Space Grotesk' }}>
                   Rehabit
                 </span>
               </Link>
             </div>
 
             {/* Center: Nav links (Desktop only) */}
-            <nav ref={navRef} className="hidden md:flex items-center gap-2 text-sm text-slate-700 relative">
+            <nav ref={navRef} className="hidden md:flex items-center gap-2 text-sm text-white/90 relative">
               {highlightStyle && (
                 <span
-                  className="absolute top-0 h-full bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
+                  className="absolute top-0 h-full bg-white rounded-full transition-all duration-500"
                   style={{ 
                     left: highlightStyle.left, 
                     width: highlightStyle.width, 
@@ -111,7 +111,7 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
                   key={item.path}
                   to={item.path}
                   className={`nav-link relative rounded-full px-3 py-2 transition-colors ${
-                    isActive(item.path) ? 'text-white' : ''
+                    isActive(item.path) ? 'text-emerald-600 font-medium' : 'hover:text-white'
                   }`}
                   style={{ zIndex: 1 }}
                 >
@@ -138,7 +138,7 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
           <div className="absolute left-0 top-0 h-full w-[280px] sm:w-[320px] bg-white shadow-xl flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-slate-200/60">
               <div className="flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-emerald-600">
                   <Zap className="h-5 w-5" />
                 </span>
                 <span
@@ -178,16 +178,10 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
                     to={item.path}
                     onClick={() => setIsOpen(false)}
                     className={`relative rounded-lg px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3 overflow-hidden ${
-                      isActive(item.path) ? 'text-white' : 'text-slate-700'
+                      isActive(item.path) ? 'text-emerald-600 bg-white' : 'text-slate-700 hover:bg-slate-50'
                     }`}
                     style={{ zIndex: 1 }}
                   >
-                    {isActive(item.path) && (
-                      <span
-                        className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 transition-all duration-500"
-                        style={{ zIndex: -1, borderRadius: '0.5rem' }}
-                      />
-                    )}
                     {Icon ? <Icon className="h-5 w-5 flex-shrink-0 relative z-10" /> : null}
                     <span className="relative z-10">{item.label}</span>
                   </Link>
@@ -234,7 +228,11 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
               boxShadow: '0 20px 50px rgba(0,0,0,0.25)'
             }}
           >
-            <ProgressMapContainer onClose={() => setShowProgressMap(false)} currentUserData={user} />
+            <ProgressMapContainer 
+              onClose={() => setShowProgressMap(false)} 
+              user={user} 
+              currentUserId={user?._id}
+            />
           </div>
         </div>
       )}
