@@ -1,6 +1,5 @@
 const User = require('../models/User');
 const Admin = require('../models/Admin');
-const Mentor = require('../models/Mentor');
 
 const requireRole = (...allowedRoles) => {
   return async (req, res, next) => {

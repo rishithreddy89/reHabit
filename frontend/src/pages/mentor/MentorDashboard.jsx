@@ -3,25 +3,30 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, TrendingUp, Target } from 'lucide-react';
+import { Users, TrendingUp, Target, Inbox } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
 
 const MentorDashboard = ({ user, onLogout }) => {
   const [clients, setClients] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchClients();
+    fetchDashboardData();
   }, []);
 
-  const fetchClients = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const response = await axios.get(`${API}/mentor/clients`);
-      setClients(response.data);
+      const [clientsRes, requestsRes] = await Promise.all([
+        axios.get(`${API}/mentors/clients`),
+        axios.get(`${API}/mentors/requests/received`)
+      ]);
+      setClients(clientsRes.data);
+      setPendingRequests(requestsRes.data.filter(r => r.status === 'pending'));
     } catch (error) {
-      toast.error('Failed to load clients');
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -57,6 +62,21 @@ const MentorDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
 
+          <Card data-testid="stat-pending-requests">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-slate-600">Pending Requests</CardTitle>
+              <Inbox className="w-5 h-5 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-slate-800">{pendingRequests.length}</div>
+              <p className="text-xs text-slate-500 mt-1">
+                <Link to="/mentor/requests" className="text-emerald-600 hover:underline">
+                  View all requests →
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
+
           <Card data-testid="stat-avg-progress">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-slate-600">Avg Progress</CardTitle>
@@ -80,6 +100,45 @@ const MentorDashboard = ({ user, onLogout }) => {
           </Card>
         </div>
 
+        {/* Pending Requests Preview */}
+        {pendingRequests.length > 0 && (
+          <Card className="bg-yellow-50 border-yellow-200">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Inbox className="w-5 h-5 text-yellow-600" />
+                  New Requests ({pendingRequests.length})
+                </CardTitle>
+                <Link to="/mentor/requests">
+                  <Button variant="outline" size="sm">View All</Button>
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {pendingRequests.slice(0, 3).map((request) => (
+                  <div key={request._id} className="bg-white rounded-lg p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={request.userId?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(request.userId?.name || 'User')}&background=10b981&color=fff`}
+                        alt={request.userId?.name}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <p className="font-medium text-slate-800">{request.userId?.name}</p>
+                        <p className="text-xs text-slate-500">{new Date(request.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <Link to="/mentor/requests">
+                      <Button size="sm" variant="outline">Review</Button>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Your Clients</CardTitle>
@@ -94,7 +153,7 @@ const MentorDashboard = ({ user, onLogout }) => {
             ) : (
               <div className="space-y-3">
                 {clients.map((client) => (
-                  <Link key={client.id} to={`/mentor/client/${client.id}`} data-testid={`client-card-${client.id}`}>
+                  <Link key={client._id || client.id} to={`/mentor/client/${client._id || client.id}`} data-testid={`client-card-${client._id || client.id}`}>
                     <div className="p-4 border rounded-lg hover:bg-slate-50 transition-colors cursor-pointer">
                       <div className="flex items-center justify-between">
                         <div>
