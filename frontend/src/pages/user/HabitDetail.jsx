@@ -43,10 +43,14 @@ const HabitDetail = ({ user, onLogout }) => {
   };
 
   useEffect(() => {
-    fetchHabitData();
+    if (habitId) {
+      fetchHabitData();
+    }
   }, [habitId]);
 
   const fetchHabitData = async () => {
+    if (!habitId) return;
+    
     try {
       const [habitRes, logsRes] = await Promise.all([
         axios.get(`${API}/habits/${habitId}`),
@@ -55,8 +59,12 @@ const HabitDetail = ({ user, onLogout }) => {
       setHabit(habitRes.data);
       setLogs(logsRes.data);
     } catch (error) {
+      console.error('Error fetching habit data:', error);
       toast.error('Failed to load habit details');
-      navigate('/user/habits');
+      // Only navigate on 404, not on network errors to prevent loops
+      if (error.response?.status === 404) {
+        navigate('/user/habits', { replace: true });
+      }
     } finally {
       setLoading(false);
     }
@@ -64,7 +72,7 @@ const HabitDetail = ({ user, onLogout }) => {
 
   const handleComplete = async () => {
     try {
-      const response = await axios.post(`/habits/${habitId}/complete`);
+      const response = await axios.post(`${API}/habits/${habitId}/complete`);
       setValidationData({
         questions: response.data.validation_questions || [response.data.validation_question],
         currentQuestionIndex: 0,
@@ -84,7 +92,7 @@ const HabitDetail = ({ user, onLogout }) => {
 
   const handleSubmitAnswer = async () => {
     try {
-      const response = await axios.post(`/habits/validate-answer`, {
+      const response = await axios.post(`${API}/habits/validate-answer`, {
         log_id: validationData.logId,
         answer: validationData.currentAnswer,
         question_index: validationData.currentQuestionIndex,
@@ -282,56 +290,123 @@ const HabitDetail = ({ user, onLogout }) => {
         <Dialog open={validationDialog} onOpenChange={setValidationDialog}>
           <DialogContent
             data-testid="validation-dialog"
-            className="bg-white rounded-2xl shadow-2xl p-6 border border-slate-200  dark:border-slate-800 max-w-md mx-auto backdrop-blur-md"
+            className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 rounded-3xl shadow-2xl p-8 border-2 border-indigo-200 max-w-lg mx-auto backdrop-blur-lg"
           >
-            <DialogHeader>
-              <DialogTitle>Validate Your Completion</DialogTitle>
-              <DialogDescription>
-                Question {validationData.currentQuestionIndex + 1} of {validationData.questions.length}
-                {validationData.questions.length > 1 && " - Answer each question thoroughly"}
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
+                ✨ Habit Validation Challenge
+              </DialogTitle>
+              <DialogDescription className="mt-2 text-slate-600">
+                <div className="bg-gradient-to-r from-indigo-100 to-purple-100 rounded-xl p-3 border border-indigo-200">
+                  Answer all 3 questions to validate your completion
+                  <div className="text-lg font-semibold mt-1 text-indigo-700">
+                    Question {validationData.currentQuestionIndex + 1} of 3
+                  </div>
+                </div>
+                <div className="mt-3 p-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-lg border border-amber-200">
+                  <span className="text-amber-700 font-medium">⚡ Be specific and detailed to meet our validation criteria!</span>
+                </div>
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              {/* Progress indicator for multiple questions */}
-              {validationData.questions.length > 1 && (
-                <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="space-y-6 mt-4">
+              {/* Enhanced Progress indicator */}
+              <div className="relative">
+                <div className="w-full bg-gradient-to-r from-slate-200 to-slate-300 rounded-full h-4 shadow-inner">
                   <div 
-                    className="bg-emerald-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-teal-500 h-4 rounded-full transition-all duration-700 ease-out shadow-lg relative overflow-hidden"
                     style={{ 
-                      width: `${((validationData.currentQuestionIndex) / validationData.questions.length) * 100}%` 
+                      width: `${((validationData.currentQuestionIndex) / 3) * 100}%` 
                     }}
-                  ></div>
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent rounded-full"></div>
+                  </div>
                 </div>
-              )}
-              
-              <div className="p-4 bg-slate-50 rounded-lg">
-                <p className="text-slate-800 font-medium">
-                  {validationData.questions[validationData.currentQuestionIndex]}
-                </p>
+                <div className="flex justify-between mt-1 text-xs font-medium">
+                  <span className="text-indigo-600">Start</span>
+                  <span className="text-purple-600">Progress</span>
+                  <span className="text-teal-600">Complete</span>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="validation-answer">Your Answer</Label>
-                <Textarea
-                  id="validation-answer"
-                  placeholder="Type your answer here..."
-                  value={validationData.currentAnswer}
-                  onChange={(e) => setValidationData(prev => ({...prev, currentAnswer: e.target.value}))}
-                  data-testid="validation-answer-input"
-                  className="bg-white dark:bg-slate-800 text-slate-900 caret-emerald-600 dark:caret-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 dark:focus:ring-emerald-500"
-                />
+              {/* Enhanced Question Display */}
+              <div className="p-4 bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50 rounded-2xl border-2 border-violet-200 shadow-lg">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {validationData.currentQuestionIndex + 1}
+                  </div>
+                  <p className="text-slate-800 font-medium text-lg leading-relaxed">
+                    {validationData.questions[validationData.currentQuestionIndex]}
+                  </p>
+                </div>
               </div>
               
+              {/* Enhanced Answer Input */}
+              <div className="space-y-3">
+                <Label htmlFor="validation-answer" className="text-slate-700 font-semibold text-sm flex items-center gap-2">
+                  <span className="w-2 h-2 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full"></span>
+                  Your Detailed Answer 
+                  <span className="text-rose-500 font-bold">*</span>
+                </Label>
+                <div className="relative">
+                  <Textarea
+                    id="validation-answer"
+                    placeholder="Be specific and detailed about how you completed this habit today..."
+                    value={validationData.currentAnswer}
+                    onChange={(e) => setValidationData(prev => ({...prev, currentAnswer: e.target.value}))}
+                    data-testid="validation-answer-input"
+                    className="bg-gradient-to-br from-white to-slate-50 border-2 border-indigo-200 text-slate-900 placeholder:text-slate-400 focus:border-purple-400 focus:ring-4 focus:ring-purple-100 rounded-xl min-h-[120px] p-4 shadow-inner transition-all duration-300"
+                    rows={5}
+                  />
+                  <div className="absolute bottom-3 right-3 text-xs text-slate-400">
+                    {validationData.currentAnswer.length}/200+ chars
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-lg border border-cyan-200">
+                  <span className="text-cyan-600">💡</span>
+                  <p className="text-xs text-cyan-700 font-medium">
+                    Pro tip: Include times, locations, and specific details for higher validation scores!
+                  </p>
+                </div>
+              </div>
+              
+              {/* Enhanced Submit Button */}
               <Button 
                 onClick={handleSubmitAnswer} 
-                className="w-full" 
-                disabled={!validationData.currentAnswer} 
+                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-teal-600 hover:from-indigo-700 hover:via-purple-700 hover:to-teal-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" 
+                disabled={!validationData.currentAnswer || validationData.currentAnswer.trim().length < 10} 
                 data-testid="submit-validation-btn"
               >
-                {validationData.currentQuestionIndex === validationData.questions.length - 1 
-                  ? 'Complete Validation & Earn XP' 
-                  : 'Next Question'}
+                <span className="flex items-center justify-center gap-2">
+                  {validationData.currentQuestionIndex === 2 ? (
+                    <>
+                      <span>🚀</span>
+                      Complete Validation & Earn XP
+                    </>
+                  ) : (
+                    <>
+                      <span>➡️</span>
+                      Next Question ({validationData.currentQuestionIndex + 2}/3)
+                    </>
+                  )}
+                </span>
               </Button>
+              
+              {/* Character count indicator */}
+              <div className="text-center">
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
+                  validationData.currentAnswer.length >= 50 
+                    ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' 
+                    : validationData.currentAnswer.length >= 20
+                    ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                    : 'bg-rose-100 text-rose-700 border border-rose-200'
+                }`}>
+                  {validationData.currentAnswer.length >= 50 && <span>✅</span>}
+                  {validationData.currentAnswer.length < 50 && validationData.currentAnswer.length >= 20 && <span>⚠️</span>}
+                  {validationData.currentAnswer.length < 20 && <span>❌</span>}
+                  {validationData.currentAnswer.length >= 50 ? 'Great detail!' : 
+                   validationData.currentAnswer.length >= 20 ? 'Add more detail' : 'Too short'}
+                </div>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
