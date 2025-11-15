@@ -1,4 +1,8 @@
-const path = require('path');
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const tryRequire = (candidate) => {
   try {
@@ -10,7 +14,7 @@ const tryRequire = (candidate) => {
   }
 };
 
-exports.getBadges = async (req, res) => {
+const getBadges = async (req, res) => {
   try {
     // try common model locations relative to project
     const candidates = [
@@ -47,4 +51,8 @@ exports.getBadges = async (req, res) => {
     console.error('getBadges error:', err);
     return res.status(500).json({ message: 'Failed to load badges' });
   }
+};
+
+export default {
+  getBadges
 };

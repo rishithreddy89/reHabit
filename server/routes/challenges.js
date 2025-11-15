@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import challengeController from '../controllers/challengeController.js';
+import { protect } from '../middleware/auth.js';
+
 const router = express.Router();
-const challengeController = require('../controllers/challengeController');
-const { protect } = require('../middleware/auth');
 
 router.use(protect);
 
@@ -11,4 +12,4 @@ router.get('/:id', challengeController.getChallenge);
 router.post('/:id/join', challengeController.joinChallenge);
 router.patch('/:id/progress', challengeController.updateProgress);
 
-module.exports = router;
+export default router;
