@@ -1,11 +1,7 @@
-const OpenAI = require('openai');
+// Simple AI service without external dependencies
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
-// Simple rule-based classifier
-exports.classifyHabit = async (title, description = '') => {
+// Simple rule-based classifier  
+export const classifyHabit = async (title, description = '') => {
   const text = `${title} ${description}`.toLowerCase();
 
   if (/(workout|exercise|gym|run|walk|yoga|fitness|diet|nutrition|sleep|meditation)/i.test(text)) {
@@ -42,52 +38,7 @@ exports.classifyHabit = async (title, description = '') => {
   return 'Lifestyle & Daily Routine';
 };
 
-// Generate exactly 3 validation questions
-exports.generateValidationQuestions = async (title, description = '') => {
-  try {
-    const prompt = `Generate EXACTLY 3 specific validation questions for this habit: "${title}". 
-The questions should verify if the user actually completed the habit today.
-Return as JSON array with exactly 3 questions: ["Q1", "Q2", "Q3"]`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 250,
-      temperature: 0.7
-    });
-
-    const response = completion.choices[0].message.content.trim();
-    try {
-      const questions = JSON.parse(response);
-      if (Array.isArray(questions) && questions.length >= 3) {
-        return questions.slice(0, 3); // Ensure exactly 3 questions
-      }
-      // Fallback: generate 3 default questions
-      return [
-        `How did you complete "${title}" today?`,
-        `What specific actions did you take for "${title}"?`,
-        `How long did you spend on "${title}" and what was the outcome?`
-      ];
-    } catch (parseError) {
-      // Fallback: generate 3 default questions
-      return [
-        `How did you complete "${title}" today?`,
-        `What specific actions did you take for "${title}"?`,
-        `How long did you spend on "${title}" and what was the outcome?`
-      ];
-    }
-  } catch (error) {
-    console.error('Questions generation error:', error);
-    // Fallback: generate 3 default questions
-    return [
-      `How did you complete "${title}" today?`,
-      `What specific actions did you take for "${title}"?`,
-      `How long did you spend on "${title}" and what was the outcome?`
-    ];
-  }
-};
-
-exports.generateVerificationQuestion = async (title, description = '') => {
+export const generateVerificationQuestion = async (title, description = '') => {
   const text = `${title} ${description}`.toLowerCase();
   
   if (/meditat/i.test(text)) return "Which meditation technique did you use today?";
@@ -100,182 +51,48 @@ exports.generateVerificationQuestion = async (title, description = '') => {
   return "How did you complete this habit today?";
 };
 
-// AI Chatbot functionality
-exports.getChatResponse = async (message, sessionId) => {
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "You are an AI habit coach. Help users build better habits." },
-        { role: "user", content: message }
-      ],
-      max_tokens: 500,
-      temperature: 0.7
-    });
-
-    return completion.choices[0].message.content;
-  } catch (error) {
-    console.error('OpenAI API error:', error);
-    return "I'm here to help you build better habits! What would you like to work on?";
-  }
+// Simple chatbot with varied responses
+export const getChatResponse = async (message, sessionId) => {
+  const responses = [
+    "That's a great question! Building habits takes consistency and patience. What specific habit are you trying to develop?",
+    "I'm here to help you build better habits! Can you tell me more about what you're working on?", 
+    "Every journey starts with a single step. What's one habit you'd like to work on this week?",
+    "Building lasting habits is all about starting small and being consistent. What area of your life would you like to improve?",
+    "I understand you're looking for guidance. Let's focus on one small step you can take today towards your goal.",
+    "Habit formation is a process that takes time. What challenges are you facing with your current habits?",
+    "Great to see you're committed to personal growth! Which habit is most important to you right now?",
+    "Remember, small consistent actions lead to big changes over time. What habit would make the biggest impact on your life?",
+    "The key to success is making habits so easy you can't say no! What's the smallest version of your desired habit?",
+    "I love helping people transform their lives through better habits! What's your biggest challenge right now?",
+    "Consistency beats perfection every time. How can we make your habit more consistent?",
+    "Your future self will thank you for the habits you build today. What habit will have the most impact on your life?"
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
 };
 
-// Multi-question validation with improved logic
-exports.validateHabitCompletion = async (habitTitle, habitDescription, questions, userAnswers) => {
-  try {
-    // Ensure we have exactly 3 answers
-    if (!userAnswers || userAnswers.length < 3) {
-      return {
-        validated: false,
-        confidence: 10,
-        reasoning: "All 3 questions must be answered to validate completion.",
-        encouragement: "Please answer all questions to complete validation."
-      };
-    }
-
-    // TEST MODE: Check for test keywords to give high scores
-    const allAnswersText = userAnswers.join(' ').toLowerCase();
-    if (allAnswersText.includes('test') || allAnswersText.includes('high score') || allAnswersText.includes('90%')) {
-      return {
-        validated: true,
-        confidence: 95,
-        reasoning: "Test mode: High validation score granted for testing purposes",
-        encouragement: "Test successful! Great job! 🎉"
-      };
-    }
-
-    // Check if answers are too short or generic
-    const answerLengths = userAnswers.map(answer => answer ? answer.trim().length : 0);
-    const totalLength = answerLengths.reduce((sum, len) => sum + len, 0);
-    const averageLength = totalLength / 3;
-    
-    // Immediate fail for very short answers
-    if (averageLength < 15) {
-      return {
-        validated: false,
-        confidence: 25,
-        reasoning: "Answers are too short and lack detail. Please provide specific information about how you completed the habit.",
-        encouragement: "Be more specific! Detail helps us verify your completion. 💪"
-      };
-    }
-
-    const questionsAndAnswers = questions.map((q, i) => 
-      `Question ${i+1}: ${q}\nAnswer ${i+1}: ${userAnswers[i] || 'No answer provided'}`
-    ).join('\n\n');
-
-    const prompt = `You are a strict habit completion validator. Analyze these answers and determine if the user ACTUALLY completed the habit today.
-
-HABIT TO VALIDATE: "${habitTitle}"
-
-USER'S RESPONSES:
-${questionsAndAnswers}
-
-SCORING RULES:
-- 90-100%: Extremely detailed, specific evidence of completion with time/location/methods mentioned
-- 80-89%: Good detail showing clear completion with some specifics
-- 70-79%: Moderate detail but shows completion occurred  
-- 60-69%: Basic completion mentioned but lacks detail
-- 40-59%: Vague answers, unclear if actually completed
-- 0-39%: No evidence of completion, just intentions or excuses
-
-Be harsh but fair. Real completion should be obvious from specific details.
-
-Return ONLY valid JSON in this exact format:
-{"validated": true, "confidence": 85, "reasoning": "User provided specific details...", "encouragement": "Great work!"}`;
-
-    console.log('Sending validation request to OpenAI...');
-    
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 300,
-      temperature: 0.1
-    });
-
-    const responseText = completion.choices[0].message.content.trim();
-    console.log('OpenAI Response:', responseText);
-    
-    // Try to parse JSON response
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('JSON Parse Error:', parseError);
-      // Try to extract JSON from response if it has extra text
-      const jsonMatch = responseText.match(/\{.*\}/s);
-      if (jsonMatch) {
-        result = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Could not extract valid JSON from response');
-      }
-    }
-    
-    // Validate the result structure
-    if (typeof result.confidence !== 'number' || typeof result.validated !== 'boolean') {
-      throw new Error('Invalid response structure from OpenAI');
-    }
-    
-    console.log('Parsed validation result:', result);
-    
-    return {
-      validated: result.validated,
-      confidence: Math.min(100, Math.max(0, Math.floor(result.confidence))),
-      reasoning: result.reasoning || "AI analysis completed",
-      encouragement: result.encouragement || "Keep building your habits!"
-    };
-
-  } catch (error) {
-    console.error('Validation error:', error);
-    
-    // Enhanced fallback validation based on content analysis
-    const totalLength = userAnswers.join(' ').trim().length;
-    const hasAllAnswers = userAnswers.every(answer => answer && answer.trim().length > 10);
-    
-    // Check for specific keywords that indicate completion
-    const completionKeywords = ['did', 'completed', 'finished', 'went', 'practiced', 'read', 'exercised', 'meditated', 'wrote', 'studied'];
-    const timeKeywords = ['minutes', 'hours', 'am', 'pm', 'morning', 'evening', 'today', 'this'];
-    const locationKeywords = ['at', 'in', 'gym', 'home', 'park', 'office', 'room'];
-    const detailKeywords = ['specifically', 'exactly', 'for', 'during', 'using', 'with', 'about'];
-    
-    const allAnswersText = userAnswers.join(' ').toLowerCase();
-    const hasCompletionWords = completionKeywords.some(word => allAnswersText.includes(word));
-    const hasTimeWords = timeKeywords.some(word => allAnswersText.includes(word));
-    const hasLocationWords = locationKeywords.some(word => allAnswersText.includes(word));
-    const hasDetailWords = detailKeywords.some(word => allAnswersText.includes(word));
-    
-    let confidence = 0;
-    let reasoning = "";
-    
-    if (hasAllAnswers && totalLength >= 150 && hasCompletionWords && hasTimeWords && hasLocationWords && hasDetailWords) {
-      confidence = 90;
-      reasoning = "Excellent detailed answers with completion indicators, time, location, and specific details";
-    } else if (hasAllAnswers && totalLength >= 120 && hasCompletionWords && hasTimeWords && hasDetailWords) {
-      confidence = 85;
-      reasoning = "Very good answers with completion indicators, time references, and details";
-    } else if (hasAllAnswers && totalLength >= 90 && hasCompletionWords && (hasTimeWords || hasLocationWords)) {
-      confidence = 78;
-      reasoning = "Good answers with completion indicators and some specifics";
-    } else if (hasAllAnswers && totalLength >= 60 && hasCompletionWords) {
-      confidence = 65;
-      reasoning = "Basic answers with completion indicators but lacking detail";
-    } else if (hasAllAnswers && totalLength >= 40) {
-      confidence = 50;
-      reasoning = "Minimal answers provided but lacking specific completion details";
-    } else {
-      confidence = 25;
-      reasoning = "Insufficient detail to verify completion";
-    }
-    
-    return {
-      validated: confidence >= 80,
-      confidence: confidence,
-      reasoning: `Enhanced fallback validation: ${reasoning}. Total length: ${totalLength} chars.`,
-      encouragement: confidence >= 80 ? "Excellent detailed answers! 🌟" : "Try to be more specific with times, locations, and details! 💪"
-    };
-  }
+// Generate exactly 3 validation questions
+export const generateValidationQuestions = async (title, description = '') => {
+  return [
+    `How did you complete "${title}" today?`,
+    `What specific actions did you take for "${title}"?`, 
+    `How long did you spend on "${title}" and what was the outcome?`
+  ];
 };
 
-exports.generateEncouragement = async (habitTitle, streakCount, validated) => {
+// Basic validation
+export const validateHabitCompletion = async (habitTitle, habitDescription, questions, userAnswers) => {
+  const allAnswersLength = userAnswers.join(' ').trim().length;
+  
+  return {
+    validated: allAnswersLength >= 20,
+    confidence: allAnswersLength >= 20 ? 80 : 40,
+    reasoning: "Basic validation based on answer length and effort",
+    encouragement: "Keep working on your habits! Every step counts! 🌟"
+  };
+};
+
+export const generateEncouragement = async (habitTitle, streakCount, validated) => {
   const validatedMessages = [
     `🎉 Amazing! ${streakCount} days strong with ${habitTitle}!`,
     `🌟 Fantastic work! Your ${streakCount}-day streak shows dedication!`,
@@ -290,4 +107,257 @@ exports.generateEncouragement = async (habitTitle, streakCount, validated) => {
   
   const messages = validated ? validatedMessages : attemptMessages;
   return messages[Math.floor(Math.random() * messages.length)];
+};
+
+// Generate AI-driven step-by-step guidance for habit completion
+export const generateHabitSteps = async (habitTitle, habitDescription, category, difficulty) => {
+  const baseSteps = getBaseStepsByCategory(category, habitTitle);
+  const difficultyModifications = getDifficultyModifications(difficulty);
+  
+  // Apply difficulty modifications to base steps
+  const steps = baseSteps.map((step, index) => ({
+    ...step,
+    duration: difficultyModifications.durations[index] || step.duration,
+    tips: [...step.tips, ...difficultyModifications.additionalTips]
+  }));
+
+  return {
+    steps,
+    totalEstimatedTime: steps.reduce((total, step) => {
+      const minutes = parseInt(step.duration.match(/(\d+)/)?.[1] || '5');
+      return total + minutes;
+    }, 0),
+    difficulty,
+    category
+  };
+};
+
+// Get category-specific base steps
+const getBaseStepsByCategory = (category, habitTitle) => {
+  const stepTemplates = {
+    'Health & Fitness': [
+      {
+        title: 'Prepare Your Environment',
+        description: 'Set up your workout space, gather equipment, and prepare mentally for your fitness activity.',
+        duration: '5 minutes',
+        tips: [
+          'Lay out workout clothes the night before',
+          'Ensure you have enough space to move freely',
+          'Keep water nearby for hydration'
+        ]
+      },
+      {
+        title: 'Warm-Up & Activation',
+        description: 'Start with light movements to prepare your body and reduce injury risk.',
+        duration: '5-10 minutes',
+        tips: [
+          'Begin with gentle stretching or light cardio',
+          'Focus on major muscle groups',
+          'Listen to energizing music to boost motivation'
+        ]
+      },
+      {
+        title: 'Execute Main Activity',
+        description: `Complete your ${habitTitle} following your planned routine or workout.`,
+        duration: '15-30 minutes',
+        tips: [
+          'Focus on proper form over speed or intensity',
+          'Take breaks when needed',
+          'Track your progress in a fitness journal'
+        ]
+      },
+      {
+        title: 'Cool Down & Recovery',
+        description: 'Wind down with stretching and reflect on your accomplishment.',
+        duration: '5-10 minutes',
+        tips: [
+          'Do gentle stretching to prevent soreness',
+          'Hydrate well after exercise',
+          'Take a moment to appreciate your effort'
+        ]
+      }
+    ],
+    'Mental & Emotional Wellbeing': [
+      {
+        title: 'Create a Calm Environment',
+        description: 'Find a quiet space and eliminate distractions for your mental wellness practice.',
+        duration: '3-5 minutes',
+        tips: [
+          'Turn off notifications on devices',
+          'Find comfortable seating',
+          'Dim lights or use natural lighting'
+        ]
+      },
+      {
+        title: 'Center Yourself',
+        description: 'Take deep breaths and bring your attention to the present moment.',
+        duration: '5 minutes',
+        tips: [
+          'Practice 4-7-8 breathing technique',
+          'Release tension in your shoulders and jaw',
+          'Set a positive intention for your practice'
+        ]
+      },
+      {
+        title: 'Engage in Practice',
+        description: `Focus on your ${habitTitle} with full attention and mindfulness.`,
+        duration: '10-20 minutes',
+        tips: [
+          'Be patient and kind with yourself',
+          'Notice thoughts without judgment',
+          'Return focus gently when mind wanders'
+        ]
+      },
+      {
+        title: 'Reflect & Integrate',
+        description: 'Take time to reflect on your experience and how you feel.',
+        duration: '3-5 minutes',
+        tips: [
+          'Journal about insights or feelings',
+          'Set an intention for carrying peace forward',
+          'Express gratitude for taking time for yourself'
+        ]
+      }
+    ],
+    'Productivity & Work': [
+      {
+        title: 'Plan & Prioritize',
+        description: 'Organize your tasks and set clear priorities for maximum productivity.',
+        duration: '5-10 minutes',
+        tips: [
+          'Use the Eisenhower Matrix for prioritization',
+          'Break large tasks into smaller steps',
+          'Set realistic time estimates for each task'
+        ]
+      },
+      {
+        title: 'Eliminate Distractions',
+        description: 'Create a focused work environment free from interruptions.',
+        duration: '5 minutes',
+        tips: [
+          'Put phone in another room or on silent',
+          'Close unnecessary browser tabs',
+          'Tell others about your focused work time'
+        ]
+      },
+      {
+        title: 'Execute Focused Work',
+        description: `Work on your ${habitTitle} with full concentration and energy.`,
+        duration: '25-45 minutes',
+        tips: [
+          'Use the Pomodoro Technique for time management',
+          'Take short breaks every 25 minutes',
+          'Track progress to stay motivated'
+        ]
+      },
+      {
+        title: 'Review & Plan Next Steps',
+        description: 'Assess what you accomplished and plan your next actions.',
+        duration: '5 minutes',
+        tips: [
+          'Celebrate completed tasks',
+          'Note lessons learned for future improvement',
+          'Schedule follow-up tasks if needed'
+        ]
+      }
+    ],
+    'Personal Growth': [
+      {
+        title: 'Set Learning Intention',
+        description: 'Define what you want to learn or achieve from this growth activity.',
+        duration: '3-5 minutes',
+        tips: [
+          'Write down specific learning goals',
+          'Connect new learning to existing knowledge',
+          'Set a growth mindset for the session'
+        ]
+      },
+      {
+        title: 'Gather Resources',
+        description: 'Collect all materials, tools, or resources needed for your learning.',
+        duration: '5 minutes',
+        tips: [
+          'Organize books, videos, or online courses',
+          'Prepare note-taking materials',
+          'Ensure stable internet connection if needed'
+        ]
+      },
+      {
+        title: 'Active Learning',
+        description: `Engage deeply with your ${habitTitle} through active participation.`,
+        duration: '20-45 minutes',
+        tips: [
+          'Take notes and ask questions',
+          'Practice new skills immediately',
+          'Connect concepts to real-world applications'
+        ]
+      },
+      {
+        title: 'Reflect & Apply',
+        description: 'Process what you learned and plan how to apply new knowledge.',
+        duration: '10 minutes',
+        tips: [
+          'Summarize key insights in your own words',
+          'Identify practical applications',
+          'Schedule practice or implementation time'
+        ]
+      }
+    ]
+  };
+
+  // Default steps for uncategorized habits
+  const defaultSteps = [
+    {
+      title: 'Prepare & Set Intention',
+      description: `Get ready for your ${habitTitle} by preparing your environment and mindset.`,
+      duration: '5 minutes',
+      tips: [
+        'Clear your space of distractions',
+        'Set a clear intention for this session',
+        'Gather any needed materials'
+      ]
+    },
+    {
+      title: 'Begin with Focus',
+      description: `Start your ${habitTitle} with full attention and commitment.`,
+      duration: '15-20 minutes',
+      tips: [
+        'Start small and build momentum',
+        'Focus on quality over quantity',
+        'Stay present and engaged'
+      ]
+    },
+    {
+      title: 'Complete & Reflect',
+      description: `Finish your ${habitTitle} and reflect on your experience.`,
+      duration: '5 minutes',
+      tips: [
+        'Acknowledge your effort and progress',
+        'Note what went well and areas for improvement',
+        'Plan for tomorrow\'s session'
+      ]
+    }
+  ];
+
+  return stepTemplates[category] || defaultSteps;
+};
+
+// Get difficulty-specific modifications
+const getDifficultyModifications = (difficulty) => {
+  const modifications = {
+    'easy': {
+      durations: ['3 minutes', '5 minutes', '10-15 minutes', '3 minutes'],
+      additionalTips: ['Take it slow and steady', 'Focus on building the routine first']
+    },
+    'medium': {
+      durations: ['5 minutes', '10 minutes', '20-30 minutes', '5 minutes'],
+      additionalTips: ['Challenge yourself but stay realistic', 'Track your progress daily']
+    },
+    'hard': {
+      durations: ['10 minutes', '15 minutes', '30-45 minutes', '10 minutes'],
+      additionalTips: ['Push your limits mindfully', 'Prepare for mental challenges', 'Celebrate small wins']
+    }
+  };
+
+  return modifications[difficulty] || modifications['medium'];
 };

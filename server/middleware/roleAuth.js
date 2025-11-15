@@ -1,7 +1,10 @@
+import User from '../models/User.js';
+import Admin from '../models/Admin.js';
+import Mentor from '../models/Mentor.js';
 const User = require('../models/User');
 const Admin = require('../models/Admin');
 
-const requireRole = (...allowedRoles) => {
+export const requireRole = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
       if (!req.user || !req.user.id) {
@@ -26,7 +29,7 @@ const requireRole = (...allowedRoles) => {
   };
 };
 
-const requirePermission = (permission) => {
+export const requirePermission = (permission) => {
   return async (req, res, next) => {
     try {
       const admin = await Admin.findOne({ userId: req.user.id });
@@ -42,5 +45,3 @@ const requirePermission = (permission) => {
     }
   };
 };
-
-module.exports = { requireRole, requirePermission };

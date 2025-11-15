@@ -19,13 +19,39 @@ const MentorDashboard = ({ user, onLogout }) => {
 
   const fetchDashboardData = async () => {
     try {
+      // quick health check to avoid connection-refused spam
+      const base = API.replace(/\/api\/?$/, '');
+      try {
+        await axios.get(`${base}/health`, { timeout: 2500 });
+      } catch (err) {
+        console.error('Backend health check failed:', err?.message || err);
+        toast.error(`Backend not reachable at ${base}. Start the server and refresh.`);
+        setLoading(false);
+        return;
+      }
+
       const [clientsRes, requestsRes] = await Promise.all([
-        axios.get(`${API}/mentors/clients`),
-        axios.get(`${API}/mentors/requests/received`)
+        axios.get(`${API}/mentors/clients`).catch(e => ({ error: e })),
+        axios.get(`${API}/mentors/requests/received`).catch(e => ({ error: e }))
       ]);
-      setClients(clientsRes.data);
-      setPendingRequests(requestsRes.data.filter(r => r.status === 'pending'));
+
+      if (clientsRes?.error) {
+        console.error('Failed to load clients:', clientsRes.error);
+        toast.error('Failed to load clients');
+        setClients([]);
+      } else {
+        setClients(clientsRes.data || []);
+      }
+
+      if (requestsRes?.error) {
+        console.error('Failed to load requests:', requestsRes.error);
+        toast.error('Failed to load requests');
+        setPendingRequests([]);
+      } else {
+        setPendingRequests((requestsRes.data || []).filter(r => r.status === 'pending'));
+      }
     } catch (error) {
+      console.error('Unexpected dashboard error:', error);
       toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);

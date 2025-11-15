@@ -12,6 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Plus, UserPlus, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { API } from '@/lib/config';
+import { mockCommunities } from '@/lib/mockData';
+import StudioHub from '@/components/StudioHub';
+import CommunityFeed from '@/components/CommunityFeed';
+import demoStore from '@/lib/demoStore';
 
 const CommunityPage = ({ user, onLogout }) => {
   const [communities, setCommunities] = useState([]);
@@ -27,12 +31,32 @@ const CommunityPage = ({ user, onLogout }) => {
     fetchCommunities();
   }, []);
 
+  const [demoJoined, setDemoJoined] = useState(() => demoStore.getJoinedCommunities());
+
+  useEffect(() => {
+    const unsub = demoStore.subscribe(() => setDemoJoined(demoStore.getJoinedCommunities()));
+    return () => unsub();
+  }, []);
+
   const fetchCommunities = async () => {
     try {
       const response = await axios.get(`${API}/communities`);
-      setCommunities(response.data);
+      // backend may return { communities: [...] } or an array; normalize
+      const data = response.data?.communities ?? response.data ?? [];
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        // fallback to demo communities when backend returns empty (silent)
+        setCommunities(demoStore.getCommunities());
+      } else {
+        setCommunities(data);
+      }
     } catch (error) {
-      toast.error('Failed to load communities');
+      // if unauthorized or backend unavailable, fall back to mock data
+      // If unauthorized or backend unreachable, show demo communities
+      if (error?.response?.status === 401 || !error?.response) {
+        setCommunities(demoStore.getCommunities());
+      } else {
+        toast.error('Failed to load communities');
+      }
     } finally {
       setLoading(false);
     }
@@ -51,6 +75,16 @@ const CommunityPage = ({ user, onLogout }) => {
       setDialogOpen(false);
       setFormData({ name: '', description: '', type: 'group' });
     } catch (error) {
+      const status = error?.response?.status;
+      // If user not signed in or backend error, create demo community locally
+      if (!user?.id || !error?.response || status === 401 || status >= 500) {
+        const created = demoStore.addCommunity({ ...formData, createdBy: user?.id });
+        setCommunities(prev => [created, ...prev]);
+        toast.success('Community created (demo)');
+        setDialogOpen(false);
+        setFormData({ name: '', description: '', type: 'group' });
+        return;
+      }
       toast.error('Failed to create community');
     }
   };
@@ -61,7 +95,27 @@ const CommunityPage = ({ user, onLogout }) => {
       toast.success('Joined community!');
       fetchCommunities();
     } catch (error) {
-      toast.error('Failed to join community');
+      // If backend is unavailable or has a server error, fall back to demo join
+      const status = error?.response?.status;
+      if (!error?.response || (status && status >= 500)) {
+        // persist demo join and update local view
+        demoStore.joinCommunity(communityId);
+        setCommunities(prev => prev.map(c => {
+          if (c.id !== communityId) return c;
+          const nextMembers = Array.isArray(c.members) ? [...c.members] : [];
+          if (user?.id && !nextMembers.includes(user.id)) nextMembers.push(user.id);
+          return { ...c, members: nextMembers };
+        }));
+        toast.success('Joined community (demo)');
+        return;
+      }
+
+      // For auth errors, tell the user to sign in; otherwise show the returned error
+      if (status === 401 || status === 403) {
+        toast.error('Please sign in to join this community');
+      } else {
+        toast.error('Failed to join community');
+      }
     }
   };
 
@@ -88,11 +142,11 @@ const CommunityPage = ({ user, onLogout }) => {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2" data-testid="create-community-btn">
-                <Plus className="w-4 h-4" />
-                Create Community
-              </Button>
-            </DialogTrigger>
+                <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="create-community-btn">
+                  <Plus className="w-4 h-4" />
+                  Create Community
+                </Button>
+              </DialogTrigger>
             <DialogContent
               data-testid="create-community-dialog"
               className="bg-white text-slate-900 rounded-lg shadow-xl border border-slate-200 w-[520px] max-w-full"
@@ -150,17 +204,29 @@ const CommunityPage = ({ user, onLogout }) => {
                     </Button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" data-testid="submit-community-btn">Create Community</Button>
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
+                  <Button type="submit" className="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white" data-testid="submit-community-btn" disabled={!formData.name.trim()}>Create Community</Button>
+                </div>
+                {/** inline feedback for demo creations when user is not signed in or backend fails */}
+                {(!user?.id) && (
+                  <div className="text-xs text-amber-600 mt-2">You're currently unsigned — communities will be created in demo mode and stored locally.</div>
+                )}
               </form>
             </DialogContent>
           </Dialog>
         </div>
 
-        <Tabs defaultValue="groups" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="feed" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="feed" data-testid="feed-tab">Feed</TabsTrigger>
             <TabsTrigger value="groups" data-testid="groups-tab">Groups</TabsTrigger>
             <TabsTrigger value="challenges" data-testid="challenges-tab">Challenges</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="feed" className="mt-6">
+            <CommunityFeed communityId={null} token={user?.token} user={user} />
+          </TabsContent>
 
           <TabsContent value="groups" className="mt-6">
             {groups.length === 0 ? (
@@ -176,32 +242,35 @@ const CommunityPage = ({ user, onLogout }) => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {groups.map((community) => (
-                  <Card key={community.id} className="card-hover" data-testid={`community-${community.id}`}>
+                      <Card key={community.id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`community-${community.id}`}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Users className="w-5 h-5 text-emerald-600" />
                         {community.name}
                       </CardTitle>
-                      <CardDescription>{community.members.length} members</CardDescription>
+                      <CardDescription>{community.members?.length ?? 0} members</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                      <CardContent>
                       <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                      <Button
-                        onClick={() => handleJoin(community.id)}
-                        variant={community.members.includes(user.id) ? 'outline' : 'default'}
-                        className="w-full"
-                        disabled={community.members.includes(user.id)}
-                        data-testid={`join-community-${community.id}`}
-                      >
-                        {community.members.includes(user.id) ? (
-                          'Joined'
-                        ) : (
-                          <>
-                            <UserPlus className="w-4 h-4 mr-2" />
-                            Join Group
-                          </>
-                        )}
-                      </Button>
+                      {(() => {
+                        const isJoined = (user?.id && community.members.includes(user.id)) || demoJoined.has(community.id);
+                        return (
+                          <Button
+                            onClick={() => handleJoin(community.id)}
+                            variant={isJoined ? 'outline' : 'default'}
+                            className={`w-full transition-colors duration-150 ${!isJoined ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
+                            disabled={isJoined}
+                            data-testid={`join-community-${community.id}`}
+                          >
+                            {isJoined ? 'Joined' : (
+                              <>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Join Group
+                              </>
+                            )}
+                          </Button>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
                 ))}
@@ -223,25 +292,30 @@ const CommunityPage = ({ user, onLogout }) => {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {challenges.map((community) => (
-                  <Card key={community.id} className="card-hover" data-testid={`challenge-${community.id}`}>
+                  <Card key={community.id} className="card-hover shadow-sm hover:shadow-lg transform hover:-translate-y-1 transition-shadow transition-transform duration-200" data-testid={`challenge-${community.id}`}>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Trophy className="w-5 h-5 text-yellow-600" />
                         {community.name}
                       </CardTitle>
-                      <CardDescription>{community.members.length} participants</CardDescription>
+                      <CardDescription>{community.members?.length ?? 0} participants</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                      <CardContent>
                       <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                      <Button
-                        onClick={() => handleJoin(community.id)}
-                        variant={community.members.includes(user.id) ? 'outline' : 'default'}
-                        className="w-full"
-                        disabled={community.members.includes(user.id)}
-                        data-testid={`join-challenge-${community.id}`}
-                      >
-                        {community.members.includes(user.id) ? 'Participating' : 'Join Challenge'}
-                      </Button>
+                      {(() => {
+                        const isPart = community.members.includes(user.id);
+                        return (
+                          <Button
+                            onClick={() => handleJoin(community.id)}
+                            variant={isPart ? 'outline' : 'default'}
+                            className={`w-full ${!isPart ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}`}
+                            disabled={isPart}
+                            data-testid={`join-challenge-${community.id}`}
+                          >
+                            {isPart ? 'Participating' : 'Join Challenge'}
+                          </Button>
+                        );
+                      })()}
                     </CardContent>
                   </Card>
                 ))}
@@ -249,6 +323,9 @@ const CommunityPage = ({ user, onLogout }) => {
             )}
           </TabsContent>
         </Tabs>
+        <div className="mt-8">
+          <StudioHub user={user} />
+        </div>
       </div>
     </Layout>
   );

@@ -33,6 +33,7 @@ const AIChatbot = ({ user, onLogout }) => {
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setLoading(true);
 
@@ -45,7 +46,7 @@ const AIChatbot = ({ user, onLogout }) => {
       }
 
       const response = await axios.post('/ai/chat', {
-        message: input,
+        message: currentInput,
         session_id: user.id
       }, {
         headers: {
@@ -87,12 +88,12 @@ const AIChatbot = ({ user, onLogout }) => {
             </CardTitle>
           </CardHeader>
           
-          <CardContent className="flex-1 overflow-auto p-6" data-testid="chat-messages">
-            <div className="space-y-6">
+          <CardContent className="flex-1 overflow-y-auto p-4" data-testid="chat-messages">
+            <div className="w-full">
               {messages.map((message, index) => (
                 <div
                   key={index}
-                  className={`flex gap-4 ${
+                  className={`flex gap-4 mb-6 items-start ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                   data-testid={`message-${index}`}
@@ -103,13 +104,16 @@ const AIChatbot = ({ user, onLogout }) => {
                     </div>
                   )}
                   <div
-                    className={`max-w-[70%] p-5 rounded-2xl ${
+                    className={`p-4 rounded-xl shadow-sm ${
                       message.role === 'user'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-slate-100 text-slate-800'
+                        ? 'bg-emerald-600 text-white max-w-md'
+                        : 'bg-white text-gray-900 max-w-3xl border'
                     }`}
+                    style={{ wordBreak: 'break-word' }}
                   >
-                    <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                    <div className="text-sm leading-relaxed">
+                      {message.content}
+                    </div>
                   </div>
                   {message.role === 'user' && (
                     <div className="w-8 h-8 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0">

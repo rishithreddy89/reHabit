@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import * as habitController from '../controllers/habitController.js';
+import { protect } from '../middleware/auth.js';
+
 const router = express.Router();
-const habitController = require('../controllers/habitController');
-const { protect } = require('../middleware/auth');
 
 router.use(protect);
 
@@ -22,4 +23,4 @@ router.delete('/:id', habitController.deleteHabit);
 router.post('/:id/complete', habitController.completeHabit);
 router.get('/:id/analytics', habitController.getHabitAnalytics);
 
-module.exports = router;
+export default router;
