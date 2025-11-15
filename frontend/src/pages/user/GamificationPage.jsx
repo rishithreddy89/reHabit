@@ -25,6 +25,7 @@ import ChallengeCard from '@/components/gamification/ChallengeCard';
 import LevelUpModal from '@/components/gamification/LevelUpModal';
 import LeaderboardUI from '@/components/gamification/LeaderboardUI';
 import GamificationStats from '@/components/gamification/GamificationStats';
+import WelcomeAnimation from '@/components/gamification/WelcomeAnimation';
 
 // Badge definitions (same as backend)
 const ALL_BADGES = [
@@ -48,6 +49,14 @@ const GamificationPage = ({ user, onLogout }) => {
   const [challenges, setChallenges] = useState([]);
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [levelUpData, setLevelUpData] = useState(null);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !localStorage.getItem('gamificationWelcomeSeen');
+  });
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('gamificationWelcomeSeen', 'true');
+  };
 
   useEffect(() => {
     fetchGamificationData();
@@ -131,6 +140,9 @@ const GamificationPage = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
+      {/* Welcome Animation */}
+      {showWelcome && <WelcomeAnimation onClose={handleCloseWelcome} />}
+      
       <div className="space-y-6 pb-12">
         {/* Welcome Banner with Sample Data Notice */}
         <motion.div
