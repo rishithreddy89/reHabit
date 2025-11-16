@@ -277,15 +277,6 @@ const UserDashboard = ({ user, onLogout }) => {
               </div>
             </CardContent>
           </Card>
-<<<<<<< Updated upstream
-
-          {/* Friends Activity Widget - NEW */}
-          <div className="lg:col-span-2">
-            <FriendsWidget />
-          </div>
-        </div>
-=======
->>>>>>> Stashed changes
 
           {/* AI Insights */}
           {insights && (
