@@ -17,7 +17,6 @@ import ChallengeCard from '@/components/gamification/ChallengeCard';
 import LevelUpModal from '@/components/gamification/LevelUpModal';
 import LeaderboardUI from '@/components/gamification/LeaderboardUI';
 import GamificationStats from '@/components/gamification/GamificationStats';
-import WelcomeAnimation from '@/components/gamification/WelcomeAnimation';
 import WorldSelector from '@/components/gamification/WorldSelector';
 
 // Badge definitions (same as backend) - kept as fallback/local catalog if backend doesn't return everything
@@ -342,14 +341,12 @@ const GamificationPage = ({ user, onLogout }) => {
   return (
     <Layout user={user} onLogout={onLogout} role="user">
       {/* Welcome Animation */}
-      {showWelcome && <WelcomeAnimation onClose={handleCloseWelcome} />}
-      
-      <div className="space-y-6 pb-12">
+      <div className="container space-y-6 pb-12">
         {/* Welcome Banner */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-6 mb-6 shadow-md text-slate-800"
+          className="hero-banner mb-6 text-slate-800"
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
@@ -382,27 +379,26 @@ const GamificationPage = ({ user, onLogout }) => {
 
         {/* Main content tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid grid-cols-6 w-full">
-            <TabsTrigger value="overview">
-              <Trophy className="w-4 h-4 mr-2" />
-              Overview
+          <TabsList className="tabs-list w-full">
+            <TabsTrigger value="overview" className="tabs-trigger flex-1">
+              <Trophy className="w-4 h-4" />
+              <span>Overview</span>
             </TabsTrigger>
 
-            <TabsTrigger value="levelmap">
-              <Map className="w-4 h-4 mr-2" />
-              Level Map
+            <TabsTrigger value="levelmap" className="tabs-trigger flex-1">
+              <Map className="w-4 h-4" />
+              <span>Level Map</span>
             </TabsTrigger>
 
-            <TabsTrigger value="shop">
-              <ShoppingBag className="w-4 h-4 mr-2" />
-              Shop
+            <TabsTrigger value="shop" className="tabs-trigger flex-1">
+              <ShoppingBag className="w-4 h-4" />
+              <span>Shop</span>
             </TabsTrigger>
 
-            <TabsTrigger value="challenges">
-              <Target className="w-4 h-4 mr-2" />
-              Challenges
+            <TabsTrigger value="challenges" className="tabs-trigger flex-1">
+              <Target className="w-4 h-4" />
+              <span>Challenges</span>
             </TabsTrigger>
-
           </TabsList>
 
           {/* Overview Tab */}
@@ -527,7 +523,29 @@ const GamificationPage = ({ user, onLogout }) => {
           </TabsContent>
 
           {/* Shop Tab */}
-          <TabsContent value="shop" className="mt-6">
+          <TabsContent value="shop" className="mt-6 space-y-4">
+            {/* Theme-matching shop header */}
+            <Card className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <ShoppingBag className="w-8 h-8 text-white" />
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">Item Shop</h2>
+                      <p className="text-white/80">Customize your experience</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2">
+                    <Coins className="w-6 h-6 text-white" />
+                    <div className="text-white text-right">
+                      <div className="text-2xl font-bold">{gamificationData?.coins ?? 0}</div>
+                      <div className="text-xs">Coins</div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <ShopUI user={user} shopItems={shopItems} />
           </TabsContent>
 
