@@ -175,6 +175,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/mentor-plans', mentorPlanRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/levels', levelRoutes);
 app.use('/api/worlds', worldRoutes);
