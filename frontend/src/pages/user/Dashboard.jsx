@@ -134,19 +134,12 @@ const UserDashboard = ({ user, onLogout }) => {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 font-raleway" style={{ fontFamily: 'Raleway, sans-serif' }}>Welcome back, {displayName}!</h1>
             <p className="text-slate-600 mt-1 text-sm sm:text-base font-merriweather" style={{ fontFamily: 'Merriweather, serif' }}>Let's keep building those habits</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchDashboardData} className="gap-2 flex-1 sm:flex-none" data-testid="refresh-btn">
-              <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Refresh</span>
+          <Link to="/user/habits">
+            <Button className="gap-2 px-6 py-5 sm:px-8 sm:py-6 text-base sm:text-lg font-semibold w-full sm:w-auto min-w-[140px] sm:min-w-[160px]" data-testid="add-habit-btn">
+              <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
+              Add Habit
             </Button>
-            <Link to="/user/habits" className="flex-1 sm:flex-none">
-              <Button className="gap-2 w-full" data-testid="add-habit-btn">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Habit</span>
-                <span className="sm:hidden">Add</span>
-              </Button>
-            </Link>
-          </div>
+          </Link>
         </div>
 
         {/* Stats Cards */}
@@ -284,27 +277,31 @@ const UserDashboard = ({ user, onLogout }) => {
               </div>
             </CardContent>
           </Card>
+<<<<<<< Updated upstream
 
           {/* Friends Activity Widget - NEW */}
           <div className="lg:col-span-2">
             <FriendsWidget />
           </div>
         </div>
+=======
+>>>>>>> Stashed changes
 
-        {/* AI Insights */}
-        {insights && (
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200" data-testid="ai-insights-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
-                AI Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-700 whitespace-pre-wrap">{insights}</p>
-            </CardContent>
-          </Card>
-        )}
+          {/* AI Insights */}
+          {insights && (
+            <Card className="lg:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200" data-testid="ai-insights-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-600" />
+                  AI Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-700 whitespace-pre-wrap">{insights}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
         
         {/* Analytics Demo */}
         <Card>

@@ -129,19 +129,56 @@ const ProgressMapContainer = ({ onClose, user, currentUserId }) => {
 					</div>
 				</div>
 				<div style={canvasStyle} ref={canvasRef}>
-					<svg viewBox="0 0 1200 2400" preserveAspectRatio="xMidYMin meet" style={{ width: '100%', height: 'auto', minHeight: '2000px', position: 'relative' }}>
+					<svg viewBox="0 0 1200 8000" preserveAspectRatio="xMidYMin meet" style={{ width: '100%', height: 'auto', minHeight: '6000px', position: 'relative' }}>
 						<defs>
 							<linearGradient id="pathGradient" x1="0" y1="0" x2="1" y2="1">
-								<stop offset="0%" stopColor="#BBDFFF" stopOpacity="0.8" />
-								<stop offset="100%" stopColor="#e3f2fd" stopOpacity="0.8" />
+								<stop offset="0%" stopColor="#3b82f6" stopOpacity="1" />
+								<stop offset="100%" stopColor="#60a5fa" stopOpacity="1" />
 							</linearGradient>
 							<linearGradient id="completedGradient" x1="0" y1="0" x2="1" y2="1">
-								<stop offset="0%" stopColor="#00d2ff" />
-								<stop offset="100%" stopColor="#4fc3f7" />
+								<stop offset="0%" stopColor="#10b981" />
+								<stop offset="100%" stopColor="#34d399" />
 							</linearGradient>
 						</defs>
-						<path ref={pathRef} d="M100,200 C300,100 500,400 700,300 C900,200 1100,500 1200,400 L1200,600 C1100,700 900,1000 700,900 C500,800 300,1100 100,1000 L100,1200 C200,1300 400,1600 600,1500 C800,1400 1000,1700 1100,1600 L1100,1800 C1000,1900 800,2200 600,2100 C400,2000 200,2300 100,2200" stroke="url(#pathGradient)" strokeWidth="50" fill="none" strokeLinecap="round" />
-						<path ref={completedPathRef} d="M100,200 C300,100 500,400 700,300 C900,200 1100,500 1200,400 L1200,600 C1100,700 900,1000 700,900 C500,800 300,1100 100,1000 L100,1200 C200,1300 400,1600 600,1500 C800,1400 1000,1700 1100,1600 L1100,1800 C1000,1900 800,2200 600,2100 C400,2000 200,2300 100,2200" stroke="url(#completedGradient)" strokeWidth="50" fill="none" strokeLinecap="round" strokeDasharray="0 1000" style={{ transition: 'stroke-dasharray 0.6s ease' }} />
+						<path ref={pathRef} d="M100,200 C300,100 500,400 700,300 C900,200 1100,500 1200,400 L1200,800 C1100,900 900,1200 700,1100 C500,1000 300,1300 100,1200 L100,1600 C200,1700 400,2000 600,1900 C800,1800 1000,2100 1100,2000 L1100,2400 C1000,2500 800,2800 600,2700 C400,2600 200,2900 100,2800 L100,3200 C300,3100 500,3400 700,3300 C900,3200 1100,3500 1200,3400 L1200,3800 C1100,3900 900,4200 700,4100 C500,4000 300,4300 100,4200 L100,4600 C200,4700 400,5000 600,4900 C800,4800 1000,5100 1100,5000 L1100,5400 C1000,5500 800,5800 600,5700 C400,5600 200,5900 100,5800 L100,6200 C300,6100 500,6400 700,6300 C900,6200 1100,6500 1200,6400 L1200,6800 C1100,6900 900,7200 700,7100 C500,7000 300,7300 100,7200 L100,7600 C200,7700 400,7950 600,7850" stroke="url(#pathGradient)" strokeWidth="60" fill="none" strokeLinecap="round" />
+						<path ref={completedPathRef} d="M100,200 C300,100 500,400 700,300 C900,200 1100,500 1200,400 L1200,800 C1100,900 900,1200 700,1100 C500,1000 300,1300 100,1200 L100,1600 C200,1700 400,2000 600,1900 C800,1800 1000,2100 1100,2000 L1100,2400 C1000,2500 800,2800 600,2700 C400,2600 200,2900 100,2800 L100,3200 C300,3100 500,3400 700,3300 C900,3200 1100,3500 1200,3400 L1200,3800 C1100,3900 900,4200 700,4100 C500,4000 300,4300 100,4200 L100,4600 C200,4700 400,5000 600,4900 C800,4800 1000,5100 1100,5000 L1100,5400 C1000,5500 800,5800 600,5700 C400,5600 200,5900 100,5800 L100,6200 C300,6100 500,6400 700,6300 C900,6200 1100,6500 1200,6400 L1200,6800 C1100,6900 900,7200 700,7100 C500,7000 300,7300 100,7200 L100,7600 C200,7700 400,7950 600,7850" stroke="url(#completedGradient)" strokeWidth="60" fill="none" strokeLinecap="round" strokeDasharray="0 1000" style={{ transition: 'stroke-dasharray 0.6s ease' }} />
+						
+						{/* Render all 100 level markers */}
+						{(() => {
+							if (!pathRef.current) return null;
+							const total = pathRef.current.getTotalLength();
+							
+							return levels.map((level) => {
+								const point = pathRef.current.getPointAtLength(total * level.percent);
+								const isUnlocked = level.id <= userLevel;
+								const isCurrent = level.id === userLevel;
+								const isMilestone = level.id % 10 === 0;
+								
+								return (
+									<g key={level.id}>
+										<circle
+											cx={point.x}
+											cy={point.y}
+											r={isMilestone ? 28 : 20}
+											fill={isUnlocked ? (isCurrent ? '#fbbf24' : '#10b981') : '#94a3b8'}
+											stroke={isCurrent ? '#f59e0b' : (isUnlocked ? '#059669' : '#64748b')}
+											strokeWidth={isCurrent ? 4 : 2}
+											opacity={isUnlocked ? 1 : 0.6}
+										/>
+										{!isUnlocked && (
+											<text x={point.x} y={point.y + 6} textAnchor="middle" fontSize={isMilestone ? "18" : "14"} fill="#ffffff" fontWeight="bold">🔒</text>
+										)}
+										{isUnlocked && (
+											<text x={point.x} y={point.y + (isMilestone ? 7 : 6)} textAnchor="middle" fontSize={isMilestone ? "16" : "12"} fill="#ffffff" fontWeight="bold">{level.id}</text>
+										)}
+										{isMilestone && (
+											<text x={point.x} y={point.y - 35} textAnchor="middle" fontSize="11" fill={isUnlocked ? '#059669' : '#64748b'} fontWeight="600">Level {level.id}</text>
+										)}
+									</g>
+								);
+							});
+						})()}
+						
 						{/* Render all leaderboard users */}
 						{(() => {
 							if (!pathRef.current) return null;
@@ -155,7 +192,7 @@ const ProgressMapContainer = ({ onClose, user, currentUserId }) => {
 								const point = pathRef.current.getPointAtLength(total * lvl.percent);
 								const isCurrentUser = userData.isCurrentUser;
 								const offsetX = index % 3 === 0 ? -60 : index % 3 === 1 ? 0 : 60;
-								const offsetY = Math.floor(index / 3) * 30;
+								const offsetY = Math.floor(index / 3) * 30 - 60;
 								
 								return (
 									<g key={userData.id || index}>

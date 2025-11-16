@@ -54,7 +54,9 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
 
   useEffect(() => {
     if (!navRef.current) return;
-    const activeIndex = items.findIndex((item) => location.pathname === item.path);
+    // Filter out AI Chat from items for accurate index calculation
+    const visibleItems = items.filter(item => item.label !== 'AI Chat');
+    const activeIndex = visibleItems.findIndex((item) => location.pathname === item.path);
     if (activeIndex === -1) {
       setHighlightStyle(null);
       return;
@@ -246,27 +248,31 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
                   }}
                 />
               )}
-              {items.map((item, index) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`nav-link nav-link-hover relative rounded-xl px-4 py-2.5 font-medium transition-all duration-300 ${
-                    isActive(item.path) 
-                      ? 'text-teal-600' 
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  style={{ zIndex: 1 }}
-                  onMouseEnter={() => setHoveredItem(index)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    {item.label}
-                  </span>
-                  {hoveredItem === index && !isActive(item.path) && (
-                    <span className="absolute inset-0 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl opacity-50" />
-                  )}
-                </Link>
-              ))}
+              {items.map((item, index) => {
+                // Remove AI Chat from desktop nav; will be accessed via floating button
+                if (item.label === 'AI Chat') return null;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-link nav-link-hover relative rounded-xl px-4 py-2.5 font-medium transition-all duration-300 ${
+                      isActive(item.path) 
+                        ? 'text-teal-600' 
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    style={{ zIndex: 1 }}
+                    onMouseEnter={() => setHoveredItem(index)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      {item.label}
+                    </span>
+                    {hoveredItem === index && !isActive(item.path) && (
+                      <span className="absolute inset-0 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl opacity-50" />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right: CTA (Desktop only) */}
