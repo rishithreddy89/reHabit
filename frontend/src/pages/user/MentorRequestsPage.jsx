@@ -146,7 +146,11 @@ const MentorRequestsPage = ({ user, onLogout }) => {
                         )}
                         <div className="flex gap-2">
                           <Link to={`/user/mentors/${request.mentorId._id}`} className="flex-1">
-                            <Button variant="outline" size="sm" className="w-full">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="w-full border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-600 font-semibold transition-all duration-200"
+                            >
                               View Profile
                             </Button>
                           </Link>

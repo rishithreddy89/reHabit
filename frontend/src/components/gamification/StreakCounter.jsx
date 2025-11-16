@@ -14,7 +14,7 @@ const StreakCounter = ({ streak, longestStreak, habitTitle, isActive = true }) =
   };
 
   const getStreakEmoji = () => {
-    if (streak >= 30) return '🔥';
+    if (streak >= 5) return '🔥';
     if (streak >= 14) return '🚀';
     if (streak >= 7) return '⚡';
     return '✨';
@@ -58,7 +58,7 @@ const StreakCounter = ({ streak, longestStreak, habitTitle, isActive = true }) =
                 >
                   <Flame className="w-4 h-4 text-amber-600" />
                   <span className="text-amber-700 text-xs font-semibold">
-                    Keep it going!
+                    Great ✊...👏Keep it going!
                   </span>
                 </motion.div>
               )}
