@@ -106,26 +106,7 @@ const ShopUI = ({ user }) => {
   return (
     <div className="space-y-6">
       {/* Header with coins */}
-      <Card className="bg-gradient-to-r from-yellow-400 to-orange-500">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <ShoppingBag className="w-8 h-8 text-white" />
-              <div>
-                <h2 className="text-3xl font-bold text-white">Item Shop</h2>
-                <p className="text-white/80">Customize your experience</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm rounded-full px-6 py-3">
-              <Coins className="w-6 h-6 text-white" />
-              <div className="text-white">
-                <div className="text-2xl font-bold">{userCoins}</div>
-                <div className="text-xs">Coins</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+   
 
       {/* Shop items */}
       <Tabs defaultValue="all" className="w-full">
