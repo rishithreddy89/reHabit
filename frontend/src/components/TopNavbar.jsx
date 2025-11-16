@@ -20,6 +20,17 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredItem, setHoveredItem] = useState(null);
 
+  // Check for openMap query parameter and auto-open progress map
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('openMap') === 'true') {
+      setShowProgressMap(true);
+      // Clean up the URL
+      const newUrl = location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location]);
+
   // Generate floating particles
   useEffect(() => {
     const particleCount = 15;
@@ -314,7 +325,11 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
             <nav className="p-4 flex flex-col gap-2 overflow-y-auto">
               {/* Progress Map quick access (mobile only) */}
               <button
-                onClick={() => setShowProgressMap(true)}
+                onClick={() => {
+                  setShowProgressMap(true);
+                  setIsOpen(false);
+                }}
+                aria-label="Open progress map"
                 className="group relative rounded-xl px-5 py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95"
                 style={{
                   background: 'linear-gradient(135deg, #14b8a6, #06b6d4)',
@@ -395,6 +410,10 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
           >
             <ProgressMapContainer 
               onClose={() => setShowProgressMap(false)} 
+              onNavigate={() => {
+                setShowProgressMap(false);
+                setIsOpen(false);
+              }}
               user={user} 
               currentUserId={user?._id}
             />

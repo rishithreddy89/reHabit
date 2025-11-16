@@ -468,7 +468,7 @@ export const getLeaderboard = async (req, res) => {
     else if (type === 'coins') sortField = { coins: -1 };
     
     const leaderboard = await UserGamification.find()
-      .populate('userId', 'name username avatar')
+      .populate('userId', 'name username avatar avatarEmoji')
       .sort(sortField)
       .limit(100);
 

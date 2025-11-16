@@ -17,6 +17,7 @@ import CommunityPage from '@/pages/user/CommunityPage';
 import LeaderboardPage from '@/pages/user/LeaderboardPage';
 import BadgesPage from '@/pages/user/BadgesPage';
 import ProfilePage from '@/pages/user/ProfilePage';
+import UserProfilePage from '@/pages/user/UserProfilePage';
 import MentorsPage from './pages/user/MentorsPage';
 import MentorProfilePage from './pages/user/MentorProfilePage';
 import MentorRequestsPage from './pages/user/MentorRequestsPage';
@@ -118,7 +119,8 @@ function App() {
         <Route path="/user/friends" element={user && user.role === 'user' ? <FriendsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/leaderboard" element={user && user.role === 'user' ? <LeaderboardPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         {/* <Route path="/user/badges" element={user && user.role === 'user' ? <BadgesPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} /> */}
-        <Route path="/user/profile" element={user && user.role === 'user' ? <ProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/profile" element={user && user.role === 'user' ? <UserProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
+        <Route path="/user/profile/:userId" element={user && user.role === 'user' ? <UserProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors" element={user && user.role === 'user' ? <MentorsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors/requests" element={user && user.role === 'user' ? <MentorRequestsPage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />
         <Route path="/user/mentors/:mentorId" element={user && user.role === 'user' ? <MentorProfilePage user={user} onLogout={handleLogout} /> : <Navigate to="/auth" />} />

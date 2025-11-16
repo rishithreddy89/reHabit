@@ -16,6 +16,7 @@ const Layout = ({ children, user, onLogout, role = 'user' }) => {
     { path: '/user/gamification', icon: Gamepad2, label: 'Gamification' },
     { path: '/user/community', icon: Users, label: 'Community' },
     { path: '/user/mentors', icon: UserPlus, label: 'Mentors' },
+    { path: '/user/profile', icon: User, label: 'Profile' },
     { path: '/user/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { path: '/user/leaderboard', icon: Trophy, label: 'Leaderboard' },
   ];
