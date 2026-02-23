@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
-import { Target, Flame, Star, TrendingUp, Plus, Sparkles } from 'lucide-react';
+import { Target, Flame, Star, TrendingUp, Plus, Sparkles, Map } from 'lucide-react';
+import ProgressMapContainer from '@/components/progress-map/ProgressMapContainer_v2';
 import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
 import LevelUpAnimation from '@/components/LevelUpAnimation';
@@ -24,6 +25,7 @@ const UserDashboard = ({ user, onLogout }) => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(1);
   const previousLevelRef = useRef(null);
+  const [showProgressMap, setShowProgressMap] = useState(false);
 
   // Initialize from localStorage on mount
   useEffect(() => {
@@ -51,6 +53,16 @@ const UserDashboard = ({ user, onLogout }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
+
+  // Close desktop overlay on ESC for better UX
+  useEffect(() => {
+    if (!showProgressMap) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setShowProgressMap(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [showProgressMap]);
 
   const fetchDashboardData = async () => {
     try {
@@ -135,18 +147,27 @@ const UserDashboard = ({ user, onLogout }) => {
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-800 font-raleway" style={{ fontFamily: 'Raleway, sans-serif' }}>Welcome back, {displayName}!</h1>
             <p className="text-slate-600 mt-1 text-sm sm:text-base font-merriweather" style={{ fontFamily: 'Merriweather, serif' }}>Let's keep building those habits</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchDashboardData} className="gap-2 flex-1 sm:flex-none" data-testid="refresh-btn">
-              <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Refresh</span>
-            </Button>
-            <Link to="/user/habits" className="flex-1 sm:flex-none">
-              <Button className="gap-2 w-full" data-testid="add-habit-btn">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add Habit</span>
-                <span className="sm:hidden">Add</span>
+          <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+            <Link to="/user/habits" className="flex-1 sm:flex-initial">
+              <Button
+                className="gap-2 px-4 py-3 sm:px-5 sm:py-3 text-base font-semibold w-full sm:w-auto min-w-[130px]"
+                data-testid="add-habit-btn"
+              >
+                <Plus className="w-5 h-5" />
+                Add Habit
               </Button>
             </Link>
+            <Button
+              type="button"
+              onClick={() => setShowProgressMap(true)}
+              className="hidden md:inline-flex gap-2 px-4 py-3"
+              variant="outline"
+              aria-label="Open progress map desktop"
+              data-testid="open-progress-map-desktop"
+            >
+              <Map className="w-5 h-5" />
+              Progress Map
+            </Button>
           </div>
         </div>
 
@@ -286,26 +307,21 @@ const UserDashboard = ({ user, onLogout }) => {
             </CardContent>
           </Card>
 
-          {/* Friends Activity Widget - NEW */}
-          <div className="lg:col-span-2">
-            <FriendsWidget />
-          </div>
+          {/* AI Insights */}
+          {insights && (
+            <Card className="lg:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200" data-testid="ai-insights-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-emerald-600" />
+                  AI Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-700 whitespace-pre-wrap">{insights}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
-
-        {/* AI Insights */}
-        {insights && (
-          <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200" data-testid="ai-insights-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-emerald-600" />
-                AI Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-slate-700 whitespace-pre-wrap">{insights}</p>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Activity Heatmap (Compact) */}
         <CompactHeatmap />
@@ -321,6 +337,38 @@ const UserDashboard = ({ user, onLogout }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Desktop Progress Map Overlay */}
+      {showProgressMap && (
+        <div
+          className="fixed inset-0 z-50 hidden md:block"
+          style={{ background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setShowProgressMap(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 'min(1000px, 92vw)',
+              height: 'min(85vh, 92vh)',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
+              background: '#0f172a'
+            }}
+          >
+            <ProgressMapContainer
+              onClose={() => setShowProgressMap(false)}
+              onNavigate={() => setShowProgressMap(false)}
+              user={user}
+              currentUserId={user?._id}
+            />
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

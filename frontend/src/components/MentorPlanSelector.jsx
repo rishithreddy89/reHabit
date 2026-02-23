@@ -119,10 +119,10 @@ const MentorPlanSelector = ({ open, onClose, mentorId, mentorName, onSuccess }) 
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent className="w-[95vw] max-w-[1400px] max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-3xl font-bold text-center">Choose Your Mentorship Plan</DialogTitle>
-          <DialogDescription className="text-center text-base">
+          <DialogTitle className="text-2xl font-semibold text-center">Choose Your Mentorship Plan</DialogTitle>
+          <DialogDescription className="text-center text-sm">
             Select a plan to start your journey with {mentorName}
           </DialogDescription>
         </DialogHeader>
@@ -132,29 +132,29 @@ const MentorPlanSelector = ({ open, onClose, mentorId, mentorName, onSuccess }) 
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
           </div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-6 py-6 px-2 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 py-6 px-8 items-stretch justify-items-stretch">
             {plans.map((plan) => {
               const colors = getPlanColor(plan.name);
               return (
                 <Card
                   key={plan._id}
-                  className={`relative transition-all duration-300 hover:shadow-2xl cursor-pointer border-2 flex flex-col ${
+                  className={`relative transition-all duration-300 hover:shadow-2xl cursor-pointer border-2 flex flex-col w-full ${
                     selectedPlan?._id === plan._id ? 'border-emerald-500 shadow-xl' : 'border-slate-200'
                   } ${plan.name === 'duo' ? 'shadow-xl' : ''}`}
                   onClick={() => setSelectedPlan(plan)}
                 >
                   {getPopularBadge(plan.name)}
                   
-                  <CardHeader className="text-center pb-4 pt-6 flex-shrink-0">
-                    <div className={`w-16 h-16 rounded-full ${colors.bg} flex items-center justify-center mx-auto mb-4 text-white shadow-lg`}>
+                  <CardHeader className="text-center pb-4 pt-5 flex-shrink-0">
+                    <div className={`w-20 h-20 rounded-full ${colors.bg} flex items-center justify-center mx-auto mb-4 text-white shadow-md`}>
                       {getPlanIcon(plan.name)}
                     </div>
-                    <CardTitle className="text-2xl font-bold mb-2">{plan.displayName}</CardTitle>
-                    <div className="text-4xl font-bold text-slate-900 mt-2">
+                    <CardTitle className="text-2xl font-semibold mb-1">{plan.displayName}</CardTitle>
+                    <div className="text-3xl font-bold text-slate-900 mt-1">
                       ${plan.price}
-                      <span className="text-base font-normal text-slate-500">/month</span>
+                      <span className="text-sm font-normal text-slate-500">/month</span>
                     </div>
-                    <CardDescription className="mt-2 text-slate-600">
+                    <CardDescription className="mt-1 text-slate-600 text-sm">
                       {plan.name === 'basic' && 'Perfect for individuals'}
                       {plan.name === 'duo' && 'Great for pairs'}
                       {plan.name === 'family' && 'Best for families'}
@@ -162,25 +162,25 @@ const MentorPlanSelector = ({ open, onClose, mentorId, mentorName, onSuccess }) 
                   </CardHeader>
 
                   <CardContent className="space-y-4 px-6 flex-grow flex flex-col">
-                    <div className="flex-grow space-y-4">
-                      <div className={`space-y-3 py-4 px-4 rounded-lg ${colors.light}`}>
+                    <div className="flex-grow space-y-5">
+                      <div className={`space-y-3 py-5 px-5 rounded-lg ${colors.light}`}>
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <Users className={`w-4 h-4 ${colors.bg.replace('bg-', 'text-')}`} />
+                          <Users className={`w-5 h-5 ${colors.bg.replace('bg-', 'text-')}`} />
                           <span>Up to {plan.maxMentees} {plan.maxMentees === 1 ? 'person' : 'people'}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <Check className={`w-4 h-4 ${colors.bg.replace('bg-', 'text-')}`} />
-                          <span>{plan.sessionsPerMonth} sessions per month{plan.maxMentees > 1 ? ` (${Math.floor(plan.sessionsPerMonth / plan.maxMentees)} per person)` : ''}</span>
+                          <Check className={`w-5 h-5 ${colors.bg.replace('bg-', 'text-')}`} />
+                          <span className="text-sm">{plan.sessionsPerMonth} sessions per month{plan.maxMentees > 1 ? ` (${Math.floor(plan.sessionsPerMonth / plan.maxMentees)} per person)` : ''}</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm font-medium">
-                          <Check className={`w-4 h-4 ${colors.bg.replace('bg-', 'text-')}`} />
-                          <span>Email support within {plan.responseTime}</span>
+                          <Check className={`w-5 h-5 ${colors.bg.replace('bg-', 'text-')}`} />
+                          <span className="text-sm">Email support within {plan.responseTime}</span>
                         </div>
                       </div>
 
                       <div className="pt-2 space-y-2.5">
                         {plan.features.map((feature, idx) => (
-                          <div key={idx} className="flex items-start gap-2.5 text-sm text-slate-700">
+                          <div key={idx} className="flex items-start gap-3 text-sm text-slate-700">
                             <Check className={`w-4 h-4 ${colors.bg.replace('bg-', 'text-')} mt-0.5 flex-shrink-0`} />
                             <span>{feature}</span>
                           </div>
@@ -189,7 +189,7 @@ const MentorPlanSelector = ({ open, onClose, mentorId, mentorName, onSuccess }) 
                     </div>
 
                     <Button
-                      className={`w-full mt-6 ${colors.button} text-white font-semibold py-6 text-base shadow-lg transition-all flex-shrink-0`}
+                      className={`w-full mt-6 ${colors.button} text-white font-semibold py-4 text-base shadow-lg transition-all flex-shrink-0`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleSubscribe(plan);
