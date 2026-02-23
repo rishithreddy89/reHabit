@@ -20,6 +20,17 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [hoveredItem, setHoveredItem] = useState(null);
 
+  // Check for openMap query parameter and auto-open progress map
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('openMap') === 'true') {
+      setShowProgressMap(true);
+      // Clean up the URL
+      const newUrl = location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [location]);
+
   // Generate floating particles
   useEffect(() => {
     const particleCount = 15;
@@ -54,7 +65,9 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
 
   useEffect(() => {
     if (!navRef.current) return;
-    const activeIndex = items.findIndex((item) => location.pathname === item.path);
+    // Filter out AI Chat from items for accurate index calculation
+    const visibleItems = items.filter(item => item.label !== 'AI Chat');
+    const activeIndex = visibleItems.findIndex((item) => location.pathname === item.path);
     if (activeIndex === -1) {
       setHighlightStyle(null);
       return;
@@ -246,27 +259,31 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
                   }}
                 />
               )}
-              {items.map((item, index) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`nav-link nav-link-hover relative rounded-xl px-4 py-2.5 font-medium transition-all duration-300 ${
-                    isActive(item.path) 
-                      ? 'text-teal-600' 
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                  style={{ zIndex: 1 }}
-                  onMouseEnter={() => setHoveredItem(index)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    {item.label}
-                  </span>
-                  {hoveredItem === index && !isActive(item.path) && (
-                    <span className="absolute inset-0 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl opacity-50" />
-                  )}
-                </Link>
-              ))}
+              {items.map((item, index) => {
+                // Remove AI Chat from desktop nav; will be accessed via floating button
+                if (item.label === 'AI Chat') return null;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`nav-link nav-link-hover relative rounded-xl px-4 py-2.5 font-medium transition-all duration-300 ${
+                      isActive(item.path) 
+                        ? 'text-teal-600' 
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    style={{ zIndex: 1 }}
+                    onMouseEnter={() => setHoveredItem(index)}
+                    onMouseLeave={() => setHoveredItem(null)}
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      {item.label}
+                    </span>
+                    {hoveredItem === index && !isActive(item.path) && (
+                      <span className="absolute inset-0 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl opacity-50" />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Right: CTA (Desktop only) */}
@@ -308,7 +325,11 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
             <nav className="p-4 flex flex-col gap-2 overflow-y-auto">
               {/* Progress Map quick access (mobile only) */}
               <button
-                onClick={() => setShowProgressMap(true)}
+                onClick={() => {
+                  setShowProgressMap(true);
+                  setIsOpen(false);
+                }}
+                aria-label="Open progress map"
                 className="group relative rounded-xl px-5 py-4 text-sm font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105 active:scale-95"
                 style={{
                   background: 'linear-gradient(135deg, #14b8a6, #06b6d4)',
@@ -389,6 +410,10 @@ const TopNavbar = ({ items = [], brandHref = '/', cta, onLogout, user }) => {
           >
             <ProgressMapContainer 
               onClose={() => setShowProgressMap(false)} 
+              onNavigate={() => {
+                setShowProgressMap(false);
+                setIsOpen(false);
+              }}
               user={user} 
               currentUserId={user?._id}
             />

@@ -226,11 +226,11 @@ const MentorProfilePage = ({ user, onLogout }) => {
                   </Badge>
                 ) : (
                   <Button 
-                    className="gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-90" 
+                    className="gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2.5" 
                     onClick={() => setShowPlanSelector(true)}
                     data-testid="subscribe-btn"
                   >
-                    <CreditCard className="w-4 h-4" />
+                    <CreditCard className="w-5 h-5" />
                     Subscribe to Mentor
                   </Button>
                 )}
@@ -238,8 +238,8 @@ const MentorProfilePage = ({ user, onLogout }) => {
                 {!userRequest ? (
                   <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="gap-2" data-testid="send-request-btn">
-                        <MessageCircle className="w-4 h-4" />
+                      <Button variant="outline" className="gap-2 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-semibold shadow-sm hover:shadow-md transition-all duration-200 px-6 py-2.5" data-testid="send-request-btn">
+                        <MessageCircle className="w-5 h-5" />
                         Send Request
                       </Button>
                     </DialogTrigger>
@@ -258,7 +258,7 @@ const MentorProfilePage = ({ user, onLogout }) => {
                           rows={4}
                           data-testid="request-message"
                         />
-                        <Button type="submit" className="w-full" data-testid="submit-request">
+                        <Button type="submit" className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200" data-testid="submit-request">
                           Send Request
                         </Button>
                       </form>

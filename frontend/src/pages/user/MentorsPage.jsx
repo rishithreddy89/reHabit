@@ -258,8 +258,11 @@ const MentorsPage = ({ user, onLogout }) => {
                       <span>{mentor.activeMentees || 0} / {mentor.maxMentees} mentees</span>
                     </div>
 
-                    <Link to={`/user/mentors/${mentor._id}`}>
-                      <Button className="w-full" data-testid={`view-mentor-${mentor._id}`}>
+                    <Link to={`/user/mentors/${mentor._id}`} className="block mt-4">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 py-2.5" 
+                        data-testid={`view-mentor-${mentor._id}`}
+                      >
                         View Profile
                       </Button>
                     </Link>

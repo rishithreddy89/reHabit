@@ -81,14 +81,18 @@ const HabitManagement = ({ user, onLogout }) => {
 
   return (
     <Layout user={user} onLogout={onLogout} role="user">
-      <div className="space-y-6 mt-5" data-testid="habit-management-page">
+      <div className="container space-y-6 mt-5" data-testid="habit-management-page">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-slate-800" style={{ fontFamily: 'Rethink Sans, sans-serif' }}>My Habits</h1>
             <p className="text-slate-600 mt-1" style={{ fontFamily: 'Spectral, serif' }}>Build and track your daily routines</p>
           </div>
           <div>
-            <Button className="gap-2" data-testid="open-add-habit-dialog" onClick={() => setDialogOpen(true)}>
+            <Button
+              className="gap-2 bg-gradient-to-br from-emerald-500 to-teal-600 text-white hover:opacity-95"
+              data-testid="open-add-habit-dialog"
+              onClick={() => setDialogOpen(true)}
+            >
               <Plus className="w-4 h-4" />
               Add New Habit
             </Button>
@@ -183,12 +187,18 @@ const HabitManagement = ({ user, onLogout }) => {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {habits.map((habit) => (
-              <Card key={habit._id} className="card-hover" data-testid={`habit-card-${habit._id}`}>
+              <Card
+                key={habit._id}
+                className="card-hover hover:shadow-xl hover:scale-[1.02] transition-transform duration-200 cursor-pointer"
+                data-testid={`habit-card-${habit._id}`}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-lg">{habit.title}</CardTitle>
-                      <CardDescription className="mt-1">{habit.category}</CardDescription>
+                      <div className="mt-2">
+                        <span className="pill">{habit.category || 'General'}</span>
+                      </div>
                     </div>
                     <Button
                       variant="ghost"
@@ -222,7 +232,14 @@ const HabitManagement = ({ user, onLogout }) => {
                     </div>
                   </div>
                   <Link to={`/user/habits/${habit._id}`}>
-                    <Button className="w-full" variant="outline" data-testid={`view-habit-${habit._id}`}>View Details</Button>
+                    <Button
+                      variant="outline"
+                      data-testid={`view-habit-${habit._id}`}
+                      className="w-full flex items-center justify-center gap-2 border border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 transition-colors"
+                    >
+                      <Target className="w-4 h-4 text-emerald-600" />
+                      <span className="font-medium">View Details</span>
+                    </Button>
                   </Link>
                 </CardContent>
               </Card>

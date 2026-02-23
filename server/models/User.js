@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ['user', 'mentor', 'admin'], default: 'user' },
   name: { type: String, required: true },
   avatar: { type: String, default: '' },
+  avatarEmoji: { type: String, default: '🧑' },
   bio: { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
   lastLogin: { type: Date },
