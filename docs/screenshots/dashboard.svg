@@ -1,333 +1,117 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800" font-family="Arial, sans-serif">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f0fdf4"/>
-      <stop offset="100%" style="stop-color:#ecfdf5"/>
-    </linearGradient>
-    <linearGradient id="sidebar" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#0f172a"/>
-      <stop offset="100%" style="stop-color:#1e293b"/>
-    </linearGradient>
-    <linearGradient id="card1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981"/>
-      <stop offset="100%" style="stop-color:#059669"/>
-    </linearGradient>
-    <linearGradient id="card2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f59e0b"/>
-      <stop offset="100%" style="stop-color:#d97706"/>
-    </linearGradient>
-    <linearGradient id="card3" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#8b5cf6"/>
-      <stop offset="100%" style="stop-color:#7c3aed"/>
-    </linearGradient>
-    <linearGradient id="card4" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ef4444"/>
-      <stop offset="100%" style="stop-color:#dc2626"/>
-    </linearGradient>
-    <linearGradient id="plant" x1="50%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" style="stop-color:#065f46"/>
-      <stop offset="100%" style="stop-color:#34d399"/>
-    </linearGradient>
-    <linearGradient id="heatmap" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#d1fae5"/>
-      <stop offset="100%" style="stop-color:#059669"/>
-    </linearGradient>
     <filter id="shadow">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0000001a"/>
+      <feDropShadow dx="0" dy="1" stdDeviation="3" flood-color="#00000018"/>
     </filter>
+    <linearGradient id="plantbg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f2a1e"/>
+      <stop offset="100%" style="stop-color:#0a1f14"/>
+    </linearGradient>
   </defs>
 
-  <!-- Background -->
-  <rect width="1280" height="720" fill="url(#bg)"/>
+  <!-- Page background -->
+  <rect width="1280" height="800" fill="#f1f5f9"/>
 
-  <!-- Sidebar -->
-  <rect x="0" y="0" width="220" height="720" fill="url(#sidebar)" filter="url(#shadow)"/>
+  <!-- TOP NAVBAR -->
+  <rect width="1280" height="64" fill="white" filter="url(#shadow)"/>
+  <rect y="64" width="1280" height="1" fill="#e2e8f0"/>
+  <rect x="24" y="16" width="34" height="34" rx="8" fill="#0d9488"/>
+  <text x="41" y="38" font-size="17" fill="white" text-anchor="middle">&#x26A1;</text>
+  <text x="66" y="38" font-size="18" font-weight="bold" fill="#0f172a">Rehabit</text>
+  <rect x="148" y="20" width="98" height="28" rx="14" fill="none" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="197" y="38" font-size="13" fill="#0d9488" text-anchor="middle" font-weight="600">Dashboard</text>
+  <text x="264" y="38" font-size="13" fill="#475569">Habits</text>
+  <text x="330" y="38" font-size="13" fill="#475569">Gamification</text>
+  <text x="432" y="38" font-size="13" fill="#475569">Community</text>
+  <text x="516" y="38" font-size="13" fill="#475569">Mentors</text>
+  <text x="580" y="38" font-size="13" fill="#475569">Profile</text>
+  <text x="638" y="38" font-size="13" fill="#475569">Subscriptions</text>
+  <text x="744" y="38" font-size="13" fill="#475569">Leaderboard</text>
+  <rect x="860" y="18" width="80" height="30" rx="15" fill="#0f172a"/>
+  <text x="900" y="37" font-size="13" fill="white" text-anchor="middle" font-weight="600">Logout</text>
 
-  <!-- Logo -->
-  <text x="30" y="42" font-family="Arial, sans-serif" font-size="22" font-weight="bold" fill="#10b981">🌱 reHabit</text>
-  <text x="30" y="58" font-family="Arial, sans-serif" font-size="11" fill="#64748b">AI Habit Platform</text>
+  <!-- MAIN CONTENT -->
+  <text x="68" y="122" font-size="30" font-weight="bold" fill="#0f172a">Welcome back, Javeed!</text>
+  <text x="68" y="148" font-size="14" fill="#64748b">Let's keep building those habits</text>
+  <rect x="700" y="108" width="120" height="36" rx="8" fill="#0d9488"/>
+  <text x="760" y="130" font-size="13" fill="white" text-anchor="middle" font-weight="600">+ Add Habit</text>
+  <rect x="832" y="108" width="140" height="36" rx="8" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="902" y="130" font-size="13" fill="#475569" text-anchor="middle">&#x1F5FA; Progress Map</text>
 
-  <!-- Sidebar Nav Items -->
-  <rect x="12" y="75" width="196" height="36" rx="8" fill="#10b981" opacity="0.2"/>
-  <text x="42" y="98" font-family="Arial, sans-serif" font-size="13" fill="#10b981" font-weight="600">📊 Dashboard</text>
+  <!-- STAT CARDS -->
+  <rect x="68" y="168" width="225" height="128" rx="12" fill="white" filter="url(#shadow)"/>
+  <text x="150" y="210" font-size="22" text-anchor="middle" fill="#0d9488">&#x25CE;</text>
+  <text x="150" y="232" font-size="12" fill="#64748b" text-anchor="middle">Total Habits</text>
+  <text x="150" y="268" font-size="40" font-weight="bold" fill="#0f172a" text-anchor="middle">3</text>
+  <text x="150" y="288" font-size="11" fill="#64748b" text-anchor="middle">Active tracking</text>
 
-  <text x="42" y="140" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🎯 My Habits</text>
-  <text x="42" y="178" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🏆 Leaderboard</text>
-  <text x="42" y="216" font-family="Arial, sans-serif" font-size="13" fill="#64748b">👥 Community</text>
-  <text x="42" y="254" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🤖 AI Mentor</text>
-  <text x="42" y="292" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🛒 Shop</text>
-  <text x="42" y="330" font-family="Arial, sans-serif" font-size="13" fill="#64748b">📈 Analytics</text>
-  <text x="42" y="368" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🌍 World Map</text>
-  <text x="42" y="406" font-family="Arial, sans-serif" font-size="13" fill="#64748b">🎭 Challenges</text>
+  <rect x="305" y="168" width="225" height="128" rx="12" fill="white" filter="url(#shadow)"/>
+  <text x="418" y="210" font-size="22" text-anchor="middle">&#x1F525;</text>
+  <text x="418" y="232" font-size="12" fill="#64748b" text-anchor="middle">Current Streak</text>
+  <text x="418" y="265" font-size="32" font-weight="bold" fill="#0f172a" text-anchor="middle">1 days</text>
+  <text x="418" y="288" font-size="11" fill="#64748b" text-anchor="middle">Keep it going!</text>
 
-  <!-- User profile at bottom -->
-  <circle cx="36" cy="680" r="18" fill="#10b981"/>
-  <text x="36" y="685" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">A</text>
-  <text x="62" y="677" font-family="Arial, sans-serif" font-size="12" fill="#e2e8f0" font-weight="600">Alex Johnson</text>
-  <text x="62" y="691" font-family="Arial, sans-serif" font-size="10" fill="#64748b">Level 7 · 3,420 XP</text>
+  <rect x="542" y="168" width="225" height="128" rx="12" fill="white" filter="url(#shadow)"/>
+  <text x="655" y="210" font-size="22" text-anchor="middle" fill="#f59e0b">&#x2606;</text>
+  <text x="655" y="232" font-size="12" fill="#64748b" text-anchor="middle">Total XP</text>
+  <text x="655" y="268" font-size="40" font-weight="bold" fill="#0f172a" text-anchor="middle">5</text>
+  <text x="655" y="288" font-size="11" fill="#64748b" text-anchor="middle">Level 1</text>
 
-  <!-- Main Content Area -->
-  <!-- Header -->
-  <text x="248" y="48" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#0f172a">Welcome back, Alex! 👋</text>
-  <text x="248" y="70" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Let's keep building those habits</text>
+  <rect x="779" y="168" width="225" height="128" rx="12" fill="white" filter="url(#shadow)"/>
+  <text x="892" y="210" font-size="22" text-anchor="middle" fill="#6366f1">&#x2197;</text>
+  <text x="892" y="232" font-size="12" fill="#64748b" text-anchor="middle">Completions</text>
+  <text x="892" y="268" font-size="40" font-weight="bold" fill="#0f172a" text-anchor="middle">1</text>
+  <text x="892" y="288" font-size="11" fill="#64748b" text-anchor="middle">All time</text>
 
-  <!-- Map Progress Button -->
-  <rect x="1100" y="24" width="148" height="38" rx="8" fill="#065f46"/>
-  <text x="1174" y="48" font-family="Arial, sans-serif" font-size="13" fill="white" text-anchor="middle" font-weight="600">🗺 Progress Map</text>
+  <!-- HABIT GROWTH CARD -->
+  <rect x="68" y="316" width="282" height="448" rx="14" fill="url(#plantbg)"/>
+  <text x="92" y="358" font-size="20" font-weight="bold" fill="white">Habit Growth</text>
+  <text x="92" y="378" font-size="12" fill="#4ade80">Your plant grows as your</text>
+  <text x="92" y="394" font-size="12" fill="#4ade80">streak increases</text>
+  <rect x="206" y="374" width="54" height="24" rx="12" fill="none" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="233" y="390" font-size="11" fill="#4ade80" text-anchor="middle">1 day</text>
+  <rect x="84" y="410" width="250" height="256" rx="10" fill="#071510"/>
+  <ellipse cx="209" cy="618" rx="55" ry="10" fill="#1a3a20"/>
+  <path d="M178 638 Q175 612 183 608 L235 608 Q243 612 240 638 Z" fill="#c2692a"/>
+  <path d="M174 610 Q176 600 209 600 Q242 600 244 610 Z" fill="#d97706"/>
+  <rect x="174" y="608" width="70" height="4" rx="2" fill="#f59e0b" opacity="0.6"/>
+  <rect x="206" y="530" width="6" height="80" rx="3" fill="#16a34a"/>
+  <ellipse cx="200" cy="532" rx="18" ry="9" fill="#22c55e" transform="rotate(-30 200 532)"/>
+  <ellipse cx="218" cy="536" rx="18" ry="9" fill="#16a34a" transform="rotate(30 218 536)"/>
+  <ellipse cx="209" cy="520" rx="12" ry="16" fill="#4ade80"/>
+  <text x="92" y="696" font-size="12" fill="white">Your seedling is sprouting!</text>
+  <text x="322" y="696" font-size="12" fill="#4ade80" text-anchor="end">3%</text>
+  <rect x="84" y="704" width="250" height="8" rx="4" fill="#1e3a2a"/>
+  <rect x="84" y="704" width="9" height="8" rx="4" fill="#4ade80"/>
+  <text x="86" y="726" font-size="11" fill="#94a3b8">Day 0</text>
+  <text x="209" y="726" font-size="11" fill="#4ade80" text-anchor="middle">Goal: 30 days</text>
+  <text x="334" y="726" font-size="11" fill="#94a3b8" text-anchor="end">Day 30</text>
 
-  <!-- Stat Cards Row -->
-  <!-- Card 1: XP -->
-  <rect x="248" y="90" width="220" height="100" rx="12" fill="white" filter="url(#shadow)"/>
-  <rect x="248" y="90" width="220" height="6" rx="6" fill="url(#card1)"/>
-  <text x="264" y="132" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Total XP</text>
-  <text x="264" y="160" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">3,420</text>
-  <text x="264" y="178" font-family="Arial, sans-serif" font-size="11" fill="#10b981">+180 this week</text>
+  <!-- TODAY'S HABITS CARD -->
+  <rect x="366" y="316" width="646" height="448" rx="14" fill="white" filter="url(#shadow)"/>
+  <text x="394" y="358" font-size="17" font-weight="bold" fill="#0f172a">Today's Habits</text>
+  <text x="394" y="378" font-size="13" fill="#64748b">Keep your momentum going</text>
+  <rect x="384" y="390" width="620" height="1" fill="#f1f5f9"/>
+  <rect x="384" y="400" width="612" height="86" rx="10" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="410" y="440" font-size="15" font-weight="600" fill="#0f172a">Revision</text>
+  <text x="958" y="440" font-size="12" fill="#94a3b8" text-anchor="end">Personal Growth</text>
+  <text x="410" y="468" font-size="12" fill="#f97316">&#x1F525; 0 day streak</text>
+  <text x="530" y="468" font-size="12" fill="#0d9488">&#x2299; 0 completions</text>
+  <rect x="384" y="496" width="612" height="86" rx="10" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="410" y="536" font-size="15" font-weight="600" fill="#0f172a">Leetcode</text>
+  <text x="958" y="536" font-size="12" fill="#94a3b8" text-anchor="end">Lifestyle &amp; Daily Routine</text>
+  <text x="410" y="564" font-size="12" fill="#f97316">&#x1F525; 0 day streak</text>
+  <text x="530" y="564" font-size="12" fill="#0d9488">&#x2299; 0 completions</text>
+  <rect x="384" y="592" width="612" height="86" rx="10" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="410" y="632" font-size="15" font-weight="600" fill="#0f172a">Productivity</text>
+  <text x="958" y="632" font-size="12" fill="#94a3b8" text-anchor="end">Productivity &amp; Work</text>
+  <text x="410" y="660" font-size="12" fill="#f97316">&#x1F525; 1 day streak</text>
+  <text x="530" y="660" font-size="12" fill="#0d9488">&#x2299; 2 completions</text>
 
-  <!-- Card 2: Streak -->
-  <rect x="480" y="90" width="220" height="100" rx="12" fill="white" filter="url(#shadow)"/>
-  <rect x="480" y="90" width="220" height="6" rx="6" fill="url(#card2)"/>
-  <text x="496" y="132" font-family="Arial, sans-serif" font-size="12" fill="#64748b">🔥 Best Streak</text>
-  <text x="496" y="160" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">28 days</text>
-  <text x="496" y="178" font-family="Arial, sans-serif" font-size="11" fill="#f59e0b">Personal best!</text>
+  <!-- AI CHATBOT BUTTON -->
+  <circle cx="1232" cy="760" r="32" fill="#0d9488" filter="url(#shadow)"/>
+  <text x="1232" y="768" font-size="20" fill="white" text-anchor="middle">&#x1F916;</text>
+  <circle cx="1248" cy="732" r="8" fill="#f59e0b"/>
 
-  <!-- Card 3: Completions -->
-  <rect x="712" y="90" width="220" height="100" rx="12" fill="white" filter="url(#shadow)"/>
-  <rect x="712" y="90" width="220" height="6" rx="6" fill="url(#card3)"/>
-  <text x="728" y="132" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Total Completions</text>
-  <text x="728" y="160" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">342</text>
-  <text x="728" y="178" font-family="Arial, sans-serif" font-size="11" fill="#8b5cf6">8 today</text>
-
-  <!-- Card 4: Level -->
-  <rect x="944" y="90" width="220" height="100" rx="12" fill="white" filter="url(#shadow)"/>
-  <rect x="944" y="90" width="220" height="6" rx="6" fill="url(#card4)"/>
-  <text x="960" y="132" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Current Level</text>
-  <text x="960" y="160" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">Level 7</text>
-  <text x="960" y="178" font-family="Arial, sans-serif" font-size="11" fill="#ef4444">2,580 XP to next</text>
-
-  <!-- XP Progress Bar -->
-  <rect x="248" y="208" width="916" height="14" rx="7" fill="#e2e8f0"/>
-  <rect x="248" y="208" width="570" height="14" rx="7" fill="#10b981"/>
-  <text x="248" y="240" font-family="Arial, sans-serif" font-size="11" fill="#64748b">XP Progress to Level 8: 3,420 / 6,000</text>
-
-  <!-- Plant Growth Card -->
-  <rect x="248" y="255" width="260" height="290" rx="12" fill="white" filter="url(#shadow)"/>
-  <text x="268" y="285" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f172a">🌿 Habit Plant</text>
-  <text x="268" y="302" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Grows with your streak</text>
-  <!-- Plant illustration -->
-  <ellipse cx="378" cy="498" rx="30" ry="8" fill="#a7f3d0" opacity="0.5"/>
-  <rect x="374" y="420" width="8" height="80" rx="4" fill="#065f46"/>
-  <ellipse cx="378" cy="415" rx="40" ry="28" fill="#34d399"/>
-  <ellipse cx="348" cy="445" rx="25" ry="18" fill="#10b981"/>
-  <ellipse cx="408" cy="445" rx="25" ry="18" fill="#10b981"/>
-  <ellipse cx="378" cy="390" rx="30" ry="22" fill="#34d399"/>
-  <text x="378" y="525" font-family="Arial, sans-serif" font-size="11" fill="#10b981" text-anchor="middle" font-weight="600">28-day streak! 🔥</text>
-  <text x="378" y="541" font-family="Arial, sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Fully Bloomed</text>
-
-  <!-- Today's Habits Card -->
-  <rect x="525" y="255" width="380" height="290" rx="12" fill="white" filter="url(#shadow)"/>
-  <text x="545" y="285" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f172a">Today's Habits</text>
-  <text x="545" y="302" font-family="Arial, sans-serif" font-size="11" fill="#64748b">3 of 5 completed</text>
-  <!-- Progress bar -->
-  <rect x="545" y="310" width="340" height="8" rx="4" fill="#e2e8f0"/>
-  <rect x="545" y="310" width="204" height="8" rx="4" fill="#10b981"/>
-
-  <!-- Habit items -->
-  <rect x="545" y="328" width="340" height="44" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="568" cy="350" r="10" fill="#10b981"/>
-  <text x="568" y="354" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">✓</text>
-  <text x="588" y="347" font-family="Arial, sans-serif" font-size="13" fill="#0f172a" font-weight="600">Morning Meditation</text>
-  <text x="588" y="363" font-family="Arial, sans-serif" font-size="11" fill="#64748b">🔥 12 day streak · 46 completions</text>
-
-  <rect x="545" y="380" width="340" height="44" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="568" cy="402" r="10" fill="#10b981"/>
-  <text x="568" y="406" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">✓</text>
-  <text x="588" y="399" font-family="Arial, sans-serif" font-size="13" fill="#0f172a" font-weight="600">Exercise 30min</text>
-  <text x="588" y="415" font-family="Arial, sans-serif" font-size="11" fill="#64748b">🔥 28 day streak · 98 completions</text>
-
-  <rect x="545" y="432" width="340" height="44" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="568" cy="454" r="10" fill="#10b981"/>
-  <text x="568" y="458" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">✓</text>
-  <text x="588" y="451" font-family="Arial, sans-serif" font-size="13" fill="#0f172a" font-weight="600">Read 20 Pages</text>
-  <text x="588" y="467" font-family="Arial, sans-serif" font-size="11" fill="#64748b">🔥 5 day streak · 23 completions</text>
-
-  <rect x="545" y="484" width="340" height="44" rx="8" fill="#fafafa" stroke="#e2e8f0" stroke-width="1"/>
-  <circle cx="568" cy="506" r="10" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="588" y="503" font-family="Arial, sans-serif" font-size="13" fill="#475569">Drink 2L Water</text>
-  <text x="588" y="519" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8">🔥 3 day streak · 14 completions</text>
-
-  <rect x="545" y="535" width="340" height="44" rx="8" fill="#fafafa" stroke="#e2e8f0" stroke-width="1"/>
-  <circle cx="568" cy="557" r="10" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="588" y="554" font-family="Arial, sans-serif" font-size="13" fill="#475569">Journaling</text>
-  <text x="588" y="570" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8">🔥 0 day streak · 7 completions</text>
-
-  <!-- Leaderboard / AI Insights Column -->
-  <rect x="922" y="255" width="242" height="290" rx="12" fill="white" filter="url(#shadow)"/>
-  <text x="942" y="285" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f172a">🏆 Leaderboard</text>
-  <text x="942" y="302" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Top performers</text>
-
-  <!-- Gold -->
-  <rect x="942" y="312" width="202" height="36" rx="6" fill="#fef3c7"/>
-  <text x="954" y="334" font-family="Arial, sans-serif" font-size="13" fill="#92400e" font-weight="bold">🥇 Sarah K.</text>
-  <text x="1100" y="334" font-family="Arial, sans-serif" font-size="12" fill="#92400e" text-anchor="end">5,210 XP</text>
-
-  <!-- Silver -->
-  <rect x="942" y="354" width="202" height="36" rx="6" fill="#f1f5f9"/>
-  <text x="954" y="376" font-family="Arial, sans-serif" font-size="13" fill="#475569" font-weight="bold">🥈 Mike R.</text>
-  <text x="1100" y="376" font-family="Arial, sans-serif" font-size="12" fill="#475569" text-anchor="end">4,890 XP</text>
-
-  <!-- Bronze -->
-  <rect x="942" y="396" width="202" height="36" rx="6" fill="#fff7ed"/>
-  <text x="954" y="418" font-family="Arial, sans-serif" font-size="13" fill="#9a3412" font-weight="bold">🥉 Alex J.</text>
-  <text x="1100" y="418" font-family="Arial, sans-serif" font-size="12" fill="#9a3412" text-anchor="end">3,420 XP</text>
-
-  <rect x="942" y="438" width="202" height="36" rx="6" fill="#fafafa"/>
-  <text x="954" y="460" font-family="Arial, sans-serif" font-size="13" fill="#475569">4. Jamie L.</text>
-  <text x="1100" y="460" font-family="Arial, sans-serif" font-size="12" fill="#475569" text-anchor="end">2,990 XP</text>
-
-  <rect x="942" y="480" width="202" height="36" rx="6" fill="#fafafa"/>
-  <text x="954" y="502" font-family="Arial, sans-serif" font-size="13" fill="#475569">5. Priya M.</text>
-  <text x="1100" y="502" font-family="Arial, sans-serif" font-size="12" fill="#475569" text-anchor="end">2,740 XP</text>
-
-  <!-- Activity Heatmap Section -->
-  <rect x="248" y="558" width="658" height="140" rx="12" fill="white" filter="url(#shadow)"/>
-  <text x="268" y="585" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#0f172a">📅 Activity Heatmap</text>
-  <text x="268" y="602" font-family="Arial, sans-serif" font-size="11" fill="#64748b">Your habit completion history</text>
-
-  <!-- Month labels -->
-  <text x="272" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Sep</text>
-  <text x="332" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Oct</text>
-  <text x="402" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Nov</text>
-  <text x="462" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Dec</text>
-  <text x="532" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Jan</text>
-  <text x="602" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Feb</text>
-  <text x="672" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Mar</text>
-  <text x="742" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">Apr</text>
-  <text x="812" y="620" font-family="Arial, sans-serif" font-size="9" fill="#94a3b8">May</text>
-
-  <!-- Heatmap grid (simplified) -->
-  <g opacity="0.9">
-    <!-- Row 1 -->
-    <rect x="272" y="626" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="284" y="626" width="10" height="10" rx="2" fill="#a7f3d0"/>
-    <rect x="296" y="626" width="10" height="10" rx="2" fill="#6ee7b7"/>
-    <rect x="308" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="320" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="332" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="344" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="356" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="368" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="380" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="392" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="404" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="416" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="428" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="440" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="452" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="464" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="476" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="488" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="500" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="512" y="626" width="10" height="10" rx="2" fill="#6ee7b7"/>
-    <rect x="524" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="536" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="548" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="560" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="572" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="584" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="596" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="608" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="620" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="632" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="644" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="656" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="668" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="680" y="626" width="10" height="10" rx="2" fill="#6ee7b7"/>
-    <rect x="692" y="626" width="10" height="10" rx="2" fill="#a7f3d0"/>
-    <rect x="704" y="626" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="716" y="626" width="10" height="10" rx="2" fill="#ecfdf5"/>
-    <rect x="728" y="626" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="740" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="752" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="764" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="776" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="788" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="800" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="812" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="824" y="626" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="836" y="626" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="848" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="860" y="626" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="872" y="626" width="10" height="10" rx="2" fill="#10b981"/>
-
-    <!-- Row 2 -->
-    <rect x="272" y="640" width="10" height="10" rx="2" fill="#ecfdf5"/>
-    <rect x="284" y="640" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="296" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="308" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="320" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="332" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="344" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="356" y="640" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="368" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="380" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="392" y="640" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="404" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="416" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="428" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="440" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="452" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="464" y="640" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="476" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="488" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="500" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="512" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="524" y="640" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="536" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="548" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="560" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="572" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="584" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="596" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="608" y="640" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="620" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="632" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="644" y="640" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="656" y="640" width="10" height="10" rx="2" fill="#ecfdf5"/>
-    <rect x="668" y="640" width="10" height="10" rx="2" fill="#d1fae5"/>
-    <rect x="680" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="692" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="704" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="716" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="728" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="740" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="752" y="640" width="10" height="10" rx="2" fill="#34d399"/>
-    <rect x="764" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="776" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="788" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="800" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="812" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="824" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="836" y="640" width="10" height="10" rx="2" fill="#065f46"/>
-    <rect x="848" y="640" width="10" height="10" rx="2" fill="#059669"/>
-    <rect x="860" y="640" width="10" height="10" rx="2" fill="#10b981"/>
-    <rect x="872" y="640" width="10" height="10" rx="2" fill="#059669"/>
-
-    <!-- Row 3 - 7 (abbreviated) -->
-    <rect x="272" y="654" width="612" height="10" rx="2" fill="#10b981" opacity="0.6"/>
-    <rect x="272" y="668" width="612" height="10" rx="2" fill="#059669" opacity="0.5"/>
-    <rect x="272" y="682" width="612" height="10" rx="2" fill="#34d399" opacity="0.4"/>
-  </g>
-
-  <!-- AI Insights  -->
-  <rect x="922" y="558" width="242" height="140" rx="12" fill="url(#card1)" opacity="0.1" filter="url(#shadow)"/>
-  <rect x="922" y="558" width="242" height="140" rx="12" fill="none" stroke="#10b981" stroke-width="1.5"/>
-  <text x="942" y="587" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#065f46">✨ AI Insights</text>
-  <text x="942" y="608" font-family="Arial, sans-serif" font-size="11" fill="#374151" xml:space="preserve">You track 5 active habits.</text>
-  <text x="942" y="624" font-family="Arial, sans-serif" font-size="11" fill="#374151">Top: Fitness category.</text>
-  <text x="942" y="640" font-family="Arial, sans-serif" font-size="11" fill="#374151">342 total completions.</text>
-  <text x="942" y="664" font-family="Arial, sans-serif" font-size="11" fill="#059669">🔥 Keep up your 28-day streak!</text>
-  <text x="942" y="682" font-family="Arial, sans-serif" font-size="11" fill="#059669">You're in the top 3 this week.</text>
-
-  <!-- Bottom text -->
-  <text x="640" y="712" font-family="Arial, sans-serif" font-size="11" fill="#94a3b8" text-anchor="middle">reHabit — AI-Powered Habit Transformation Platform · 2026</text>
+  <rect width="1280" height="800" fill="none" stroke="#e2e8f0" stroke-width="1"/>
 </svg>

@@ -52,7 +52,7 @@ Whether you're trying to exercise consistently, read more, or meditate daily —
 
 ### 🏠 User Dashboard
 
-![reHabit Dashboard](docs/screenshots/dashboard.png)
+![reHabit Dashboard](docs/screenshots/dashboard.svg)
 
 > The dashboard gives you a real-time snapshot of your habit streak, XP, total completions, plant growth tied to your streak, today's habits, leaderboard position, AI insights, and activity heatmap — all in one view.
 
