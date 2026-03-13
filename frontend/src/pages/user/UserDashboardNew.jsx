@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import AIChatbot, { AIChatbotButton } from '../../components/AIChatbot';
 import axios from 'axios';
-import { API } from '@/lib/config';
 
 const UserDashboard = () => {
   const [user, setUser] = useState(null);
@@ -28,19 +27,19 @@ const UserDashboard = () => {
       setUser(userData);
 
       // Load habits
-      const habitsResponse = await axios.get(`${API}/habits`, {
+      const habitsResponse = await axios.get('http://localhost:4000/api/habits', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHabits(habitsResponse.data.habits || []);
 
       // Load stats
-      const statsResponse = await axios.get(`${API}/users/stats`, {
+      const statsResponse = await axios.get('http://localhost:4000/api/users/stats', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStats(statsResponse.data);
 
       // Load AI insights
-      const insightsResponse = await axios.get(`${API}/ai/insights`, {
+      const insightsResponse = await axios.get('http://localhost:4000/api/ai/insights', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setInsights(insightsResponse.data);

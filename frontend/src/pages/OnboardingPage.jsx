@@ -8,7 +8,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Sparkles } from 'lucide-react';
-import { API } from '@/lib/config';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? 'http://localhost:5000';
+const API = `${BACKEND_URL}/api`;
 
 const OnboardingPage = ({ user }) => {
   const navigate = useNavigate();

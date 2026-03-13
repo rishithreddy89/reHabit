@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Flame, Target, Trophy, Star, TrendingUp, Heart } from 'lucide-react';
+import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
 const ActivityFeed = () => {
@@ -18,8 +19,7 @@ const ActivityFeed = () => {
       const res = await axios.get('/friends/activity');
       setActivities(res.data);
     } catch (error) {
-      console.error('Failed to load activity feed:', error);
-      setActivities([]);
+      toast.error('Failed to load activity feed');
     } finally {
       setLoading(false);
     }

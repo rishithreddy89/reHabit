@@ -172,16 +172,12 @@ const HabitManagement = ({ user, onLogout }) => {
 
         {habits.length === 0 ? (
           <Card>
-            <CardContent className="py-14 sm:py-20">
-              <div className="text-center flex flex-col items-center gap-3">
-                <Target className="w-16 h-16 sm:w-20 sm:h-20 text-slate-200" />
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-700">No habits yet</h3>
-                <p className="text-slate-400 text-sm sm:text-base max-w-xs">Create your first habit to get started on your journey</p>
-                <Button
-                  onClick={() => setDialogOpen(true)}
-                  className="mt-2 px-6 sm:px-8 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto max-w-xs"
-                  data-testid="create-first-habit-btn"
-                >
+            <CardContent className="py-12">
+              <div className="text-center">
+                <Target className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <h3 className="text-lg font-semibold text-slate-700 mb-2">No habits yet</h3>
+                <p className="text-slate-500 mb-4">Create your first habit to get started</p>
+                <Button onClick={() => setDialogOpen(true)} data-testid="create-first-habit-btn">
                   <Plus className="w-4 h-4 mr-2" />
                   Create Habit
                 </Button>

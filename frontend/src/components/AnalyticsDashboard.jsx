@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Line, Radar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, RadialLinearScale, ArcElement, Tooltip, Legend } from 'chart.js';
-import axios from '@/lib/axiosInstance';
+import axios from 'axios';
 import { API } from '@/lib/config';
+import { AlertCircle } from 'lucide-react';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, RadialLinearScale, ArcElement, Tooltip, Legend);
 
@@ -11,6 +12,7 @@ export default function AnalyticsDashboard() {
   const [radarData, setRadarData] = useState(null);
   const [pieData, setPieData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchAnalyticsData();
@@ -19,6 +21,7 @@ export default function AnalyticsDashboard() {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       // Fetch consistency data (monthly)
       const consistencyRes = await axios.get(`${API}/users/analytics/consistency`).catch(() => ({ data: { data: [] } }));
@@ -91,6 +94,7 @@ export default function AnalyticsDashboard() {
       setPieData(pieChartData);
     } catch (err) {
       console.error('Failed to fetch analytics data:', err);
+      setError('Failed to load analytics data');
     } finally {
       setLoading(false);
     }
@@ -104,7 +108,14 @@ export default function AnalyticsDashboard() {
     );
   }
 
-
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded text-sm">
+        <AlertCircle className="w-4 h-4 text-yellow-600" />
+        <span className="text-yellow-700 dark:text-yellow-400">{error}</span>
+      </div>
+    );
+  }
 
   const chartOptions = {
     responsive: true,

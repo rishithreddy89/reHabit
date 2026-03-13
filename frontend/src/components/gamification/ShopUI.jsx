@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Coins, Lock, Check, Star, AlertTriangle, X } from 'lucide-react';
+import { ShoppingBag, Coins, Lock, Check, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -17,26 +17,12 @@ const rarityColors = {
   legendary: 'from-yellow-400 to-orange-500'
 };
 
-// userCoins prop: actual coins from parent (GamificationPage). onCoinsUpdate: callback to sync parent after purchase.
-const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, userLevel: propUserLevel = 1, onCoinsUpdate }) => {
+const ShopUI = ({ user }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userCoins, setUserCoins] = useState(propUserCoins);
-  const [userLevel, setUserLevel] = useState(propUserLevel);
+  const [userCoins, setUserCoins] = useState(0);
+  const [userLevel, setUserLevel] = useState(1);
   const [purchasing, setPurchasing] = useState(null);
-  const [confirmItem, setConfirmItem] = useState(null); // item pending confirmation
-
-  // Sync coins from parent whenever it updates (e.g. after page-level refetch)
-  useEffect(() => {
-    setUserCoins(propUserCoins);
-    // Also refresh canAfford flags on all items when parent coins change
-    setItems(prev => prev.map(item => ({ ...item, canAfford: propUserCoins >= item.price })));
-  }, [propUserCoins]);
-
-  useEffect(() => {
-    setUserLevel(propUserLevel);
-    setItems(prev => prev.map(item => ({ ...item, canBuy: propUserLevel >= (item.levelRequired || 1) })));
-  }, [propUserLevel]);
 
   useEffect(() => {
     fetchShopItems();
@@ -51,40 +37,37 @@ const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, 
         });
         
         if (response.data.items && response.data.items.length > 0) {
-          // Always trust the API coin value; if 0 and prop says more, use prop (first-visit race condition)
-          const apiCoins = response.data.userCoins ?? propUserCoins;
-          const apiLevel = response.data.userLevel ?? propUserLevel;
-          setItems(response.data.items.map(item => ({
-            ...item,
-            canAfford: apiCoins >= item.price,
-            canBuy: apiLevel >= (item.levelRequired || 1)
-          })));
-          setUserCoins(apiCoins);
-          setUserLevel(apiLevel);
+          setItems(response.data.items);
+          setUserCoins(response.data.userCoins);
+          setUserLevel(response.data.userLevel);
         } else {
-          // No items from API — use ENHANCED_SHOP_ITEMS with real coins from prop
-          const coins = propUserCoins;
-          const level = propUserLevel;
+          // Use enhanced sample data with proper flags
+          const sampleCoins = 250;
+          const sampleLevel = 13;
           setItems(ENHANCED_SHOP_ITEMS.map(item => ({ 
             ...item, 
             owned: false, 
-            _id: item._id || Math.random().toString(),
-            canAfford: coins >= item.price,
-            canBuy: level >= (item.levelRequired || 1)
+            _id: Math.random().toString(),
+            canAfford: sampleCoins >= item.price,
+            canBuy: sampleLevel >= (item.levelRequired || 1)
           })));
+          setUserCoins(sampleCoins);
+          setUserLevel(sampleLevel);
         }
       } catch (apiError) {
-        // API error — use sample items but real coins from parent prop
+        // Use sample data on API error
         console.log('Using sample shop data');
-        const coins = propUserCoins;
-        const level = propUserLevel;
+        const sampleCoins = 250;
+        const sampleLevel = 13;
         setItems(ENHANCED_SHOP_ITEMS.map(item => ({ 
           ...item, 
           owned: false, 
-          _id: item._id || Math.random().toString(),
-          canAfford: coins >= item.price,
-          canBuy: level >= (item.levelRequired || 1)
+          _id: Math.random().toString(),
+          canAfford: sampleCoins >= item.price,
+          canBuy: sampleLevel >= (item.levelRequired || 1)
         })));
+        setUserCoins(sampleCoins);
+        setUserLevel(sampleLevel);
       }
     } catch (error) {
       console.error('Failed to fetch shop items:', error);
@@ -94,69 +77,75 @@ const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, 
     }
   };
 
-  // Step 1: show confirmation dialog instead of buying immediately
-  const handlePurchase = (itemId) => {
-    const itemToPurchase = items.find(item => item._id === itemId);
-    if (!itemToPurchase) { toast.error('Item not found'); return; }
-
-    // Hard-block: level requirement
-    if (!itemToPurchase.canBuy) {
-      toast.error(`🔒 Level ${itemToPurchase.levelRequired} required to buy this item`);
-      return;
-    }
-
-    // Hard-block: not enough coins (always compare against live userCoins state)
-    if (userCoins < itemToPurchase.price) {
-      toast.error(`❌ Not enough coins — you need ${itemToPurchase.price} coins but only have ${userCoins}`);
-      return;
-    }
-
-    // All checks passed — show confirmation dialog
-    setConfirmItem(itemToPurchase);
-  };
-
-  // Step 2: user confirmed — do the actual purchase
-  const handleConfirmPurchase = async () => {
-    const itemToPurchase = confirmItem;
-    setConfirmItem(null);
-    if (!itemToPurchase) return;
-
-    // Re-validate with live state before sending request
-    if (userCoins < itemToPurchase.price) {
-      toast.error('Not enough coins');
-      return;
-    }
-
+  const handlePurchase = async (itemId) => {
     try {
-      setPurchasing(itemToPurchase._id);
+      setPurchasing(itemId);
+      
+      // Find the item to purchase
+      const itemToPurchase = items.find(item => item._id === itemId);
+      if (!itemToPurchase) {
+        toast.error('Item not found');
+        return;
+      }
+
+      // Check if we can afford it
+      if (!itemToPurchase.canAfford) {
+        toast.error('Not enough coins');
+        return;
+      }
+
+      // Check level requirement
+      if (!itemToPurchase.canBuy) {
+        toast.error(`Requires level ${itemToPurchase.levelRequired}`);
+        return;
+      }
+
       const token = localStorage.getItem('token');
-
-      const applyPurchase = (newCoins) => {
-        setUserCoins(newCoins);
-        setItems(prevItems =>
-          prevItems.map(item => ({
-            ...item,
-            owned: item._id === itemToPurchase._id ? true : item.owned,
-            canAfford: newCoins >= item.price,
-          }))
-        );
-        // Notify parent (GamificationPage) so header + shop banner stay in sync
-        if (onCoinsUpdate) onCoinsUpdate(newCoins);
-        toast.success(`🎉 "${itemToPurchase.name}" purchased! ${newCoins} coins remaining`);
-      };
-
+      
       try {
+        // Try to purchase from API
         const response = await axios.post(
-          `${API}/gamification/shop/purchase/${itemToPurchase._id}`,
+          `${API}/gamification/shop/purchase/${itemId}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        const remaining = response.data.remainingCoins ?? (userCoins - itemToPurchase.price);
-        applyPurchase(remaining);
+        
+        toast.success('🎉 Item purchased successfully!');
+        setUserCoins(response.data.remainingCoins);
+        
+        // Update items to mark as owned
+        setItems(prevItems =>
+          prevItems.map(item =>
+            item._id === itemId ? { ...item, owned: true } : item
+          )
+        );
       } catch (apiError) {
-        // Offline / DB fallback — still deduct coins locally
-        console.log('API purchase failed, applying locally');
-        applyPurchase(userCoins - itemToPurchase.price);
+        // If API fails (e.g., DB not connected), simulate purchase with sample data
+        console.log('API purchase failed, using sample data');
+        
+        // Deduct coins locally
+        const newCoins = userCoins - itemToPurchase.price;
+        setUserCoins(newCoins);
+        
+        // Mark item as owned
+        setItems(prevItems =>
+          prevItems.map(item => {
+            if (item._id === itemId) {
+              return { 
+                ...item, 
+                owned: true,
+                canAfford: newCoins >= item.price 
+              };
+            }
+            // Update canAfford for all items with new coin balance
+            return {
+              ...item,
+              canAfford: newCoins >= item.price
+            };
+          })
+        );
+        
+        toast.success('🎉 Item purchased successfully!');
       }
     } catch (error) {
       toast.error(error.message || 'Purchase failed');
@@ -183,85 +172,8 @@ const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, 
 
   return (
     <div className="space-y-6">
-      {/* Confirmation Dialog */}
-      <AnimatePresence>
-        {confirmItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
-            onClick={() => setConfirmItem(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 text-amber-600">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="font-bold text-slate-800 text-lg">Confirm Purchase</span>
-                </div>
-                <button onClick={() => setConfirmItem(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-4 bg-slate-50 rounded-xl p-4 mb-5">
-                <div className="text-5xl">{confirmItem.icon}</div>
-                <div>
-                  <p className="font-bold text-slate-800">{confirmItem.name}</p>
-                  <p className="text-sm text-slate-500">{confirmItem.description}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm mb-5">
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <Coins className="w-4 h-4 text-yellow-500" />
-                  <span>Cost: <span className="font-bold text-slate-800">{confirmItem.price} coins</span></span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-600">
-                  <span>After purchase: <span className="font-bold text-emerald-600">{userCoins - confirmItem.price} coins</span></span>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 rounded-full border-slate-200 text-slate-600 hover:bg-slate-50"
-                  onClick={() => setConfirmItem(null)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1 rounded-full bg-teal-600 hover:bg-teal-700 text-white font-semibold shadow-sm"
-                  onClick={handleConfirmPurchase}
-                >
-                  <ShoppingBag className="w-4 h-4 mr-1.5" />
-                  Buy Now
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Header with coins */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-100 rounded-2xl px-5 py-3.5">
-        <div className="flex items-center gap-2">
-          <Coins className="w-5 h-5 text-yellow-500" />
-          <span className="text-slate-700 font-medium text-sm">Your Balance</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Coins className="w-5 h-5 text-yellow-400" />
-          <span className="text-2xl font-bold text-slate-800">{userCoins}</span>
-          <span className="text-sm text-slate-500 ml-1">coins</span>
-        </div>
-      </div>
+   
 
       {/* Shop items */}
       <Tabs defaultValue="all" className="w-full">
@@ -347,14 +259,14 @@ const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, 
                               !item.canBuy ||
                               purchasing === item._id
                             }
-                            className={`rounded-full px-4 py-1.5 text-sm font-semibold text-white border-0 shadow-sm transition-all duration-200 ${
+                            className={`${
                               item.owned
-                                ? 'bg-emerald-500 cursor-default'
+                                ? 'bg-green-500'
                                 : !item.canBuy
-                                ? 'bg-slate-400 cursor-not-allowed opacity-80'
+                                ? 'bg-slate-400'
                                 : !item.canAfford
-                                ? 'bg-rose-500 cursor-not-allowed opacity-90'
-                                : 'bg-teal-600 hover:bg-teal-700 active:scale-95 hover:shadow-md'
+                                ? 'bg-red-400'
+                                : 'bg-gradient-to-r from-purple-500 to-pink-500'
                             }`}
                           >
                             {purchasing === item._id ? (
@@ -363,25 +275,19 @@ const ShopUI = ({ user, shopItems: propShopItems, userCoins: propUserCoins = 0, 
                                 Buying...
                               </span>
                             ) : item.owned ? (
-                              <span className="flex items-center gap-1.5">
-                                <Check className="w-3.5 h-3.5" />
+                              <span className="flex items-center gap-1">
+                                <Check className="w-4 h-4" />
                                 Owned
                               </span>
                             ) : !item.canBuy ? (
-                              <span className="flex items-center gap-1.5">
-                                <Lock className="w-3.5 h-3.5" />
+                              <span className="flex items-center gap-1">
+                                <Lock className="w-4 h-4" />
                                 Locked
                               </span>
                             ) : !item.canAfford ? (
-                              <span className="flex items-center gap-1.5">
-                                <Lock className="w-3.5 h-3.5" />
-                                Need More Coins
-                              </span>
+                              'Not Enough Coins'
                             ) : (
-                              <span className="flex items-center gap-1.5">
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                Purchase
-                              </span>
+                              'Purchase'
                             )}
                           </Button>
                         </div>

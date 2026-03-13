@@ -37,6 +37,7 @@ const MentorDashboard = ({ user, onLogout }) => {
 
       if (clientsRes?.error) {
         console.error('Failed to load clients:', clientsRes.error);
+        toast.error('Failed to load clients');
         setClients([]);
       } else {
         setClients(clientsRes.data || []);
@@ -44,12 +45,14 @@ const MentorDashboard = ({ user, onLogout }) => {
 
       if (requestsRes?.error) {
         console.error('Failed to load requests:', requestsRes.error);
+        toast.error('Failed to load requests');
         setPendingRequests([]);
       } else {
         setPendingRequests((requestsRes.data || []).filter(r => r.status === 'pending'));
       }
     } catch (error) {
       console.error('Unexpected dashboard error:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }

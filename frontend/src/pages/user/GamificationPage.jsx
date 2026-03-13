@@ -380,24 +380,24 @@ const GamificationPage = ({ user, onLogout }) => {
         {/* Main content tabs */}
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="tabs-list w-full">
-            <TabsTrigger value="overview" className="tabs-trigger flex-1 gap-1.5">
-              <Trophy className="w-4 h-4 shrink-0" />
-              <span>Overview</span>
+            <TabsTrigger value="overview" className="tabs-trigger flex-1 text-xs sm:text-sm">
+              <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Overview</span>
             </TabsTrigger>
 
-            <TabsTrigger value="levelmap" className="tabs-trigger flex-1 gap-1.5">
-              <Map className="w-4 h-4 shrink-0" />
-              <span>Level Map</span>
+            <TabsTrigger value="levelmap" className="tabs-trigger flex-1 text-xs sm:text-sm">
+              <Map className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Level Map</span>
             </TabsTrigger>
 
-            <TabsTrigger value="shop" className="tabs-trigger flex-1 gap-1.5">
-              <ShoppingBag className="w-4 h-4 shrink-0" />
-              <span>Shop</span>
+            <TabsTrigger value="shop" className="tabs-trigger flex-1 text-xs sm:text-sm">
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Shop</span>
             </TabsTrigger>
 
-            <TabsTrigger value="challenges" className="tabs-trigger flex-1 gap-1.5">
-              <Target className="w-4 h-4 shrink-0" />
-              <span>Challenges</span>
+            <TabsTrigger value="challenges" className="tabs-trigger flex-1 text-xs sm:text-sm">
+              <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Challenges</span>
             </TabsTrigger>
           </TabsList>
 
@@ -544,15 +544,7 @@ const GamificationPage = ({ user, onLogout }) => {
               </CardContent>
             </Card>
 
-            <ShopUI
-              user={user}
-              shopItems={shopItems}
-              userCoins={gamificationData?.coins ?? 0}
-              userLevel={gamificationData?.level ?? 1}
-              onCoinsUpdate={(newCoins) =>
-                setGamificationData(prev => prev ? { ...prev, coins: newCoins } : prev)
-              }
-            />
+            <ShopUI user={user} shopItems={shopItems} />
           </TabsContent>
 
           {/* Badges Tab */}

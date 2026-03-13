@@ -99,9 +99,6 @@ function App() {
           } 
         />
 
-        {/* /login alias → /auth for compatibility */}
-        <Route path="/login" element={<Navigate to="/auth" replace />} />
-
         {/* Onboarding - requires authentication */}
         <Route 
           path="/onboarding" 

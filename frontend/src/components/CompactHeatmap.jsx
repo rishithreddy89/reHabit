@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from '@/lib/axiosInstance';
+import axios from 'axios';
+import { toast } from 'sonner';
 import { API } from '@/lib/config';
-import { Flame } from 'lucide-react';
+import { Flame, AlertCircle } from 'lucide-react';
 
 const CompactHeatmap = () => {
   const [heatmapData, setHeatmapData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedDate, setSelectedDate] = useState(null);
   const [tooltipInfo, setTooltipInfo] = useState(null);
 
@@ -15,6 +17,7 @@ const CompactHeatmap = () => {
     const fetchYearlyData = async () => {
       try {
         setLoading(true);
+        setError(null);
 
         // Fetch data for all 12 months
         const monthPromises = [];
@@ -45,6 +48,7 @@ const CompactHeatmap = () => {
         setHeatmapData(aggregated);
       } catch (err) {
         console.error('Failed to fetch yearly heatmap:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -100,6 +104,15 @@ const CompactHeatmap = () => {
     return (
       <div className="flex items-center justify-center py-4">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded text-sm">
+        <AlertCircle className="w-4 h-4 text-red-600" />
+        <span className="text-red-700 dark:text-red-400">Failed to load activity</span>
       </div>
     );
   }
