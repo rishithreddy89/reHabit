@@ -28,8 +28,8 @@ code {
         --card-foreground: 0 0% 3.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
+        --primary: 177 77% 32%;
+        --primary-foreground: 0 0% 100%;
         --secondary: 0 0% 96.1%;
         --secondary-foreground: 0 0% 9%;
         --muted: 0 0% 96.1%;
@@ -59,8 +59,8 @@ code {
         --card-foreground: 0 0% 98%;
         --popover: 0 0% 3.9%;
         --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
+        --primary: 177 77% 45%;
+        --primary-foreground: 0 0% 100%;
         --secondary: 0 0% 14.9%;
         --secondary-foreground: 0 0% 98%;
         --muted: 0 0% 14.9%;
@@ -133,40 +133,47 @@ code {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: .5rem;
-        padding: .6rem .9rem;
-        border-radius: .75rem;
-        font-weight: 600;
-        color: hsl(var(--muted-foreground));
+        gap: .45rem;
+        padding: .55rem 1rem;
+        border-radius: .65rem;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #64748b;
         background: transparent;
-        transition: all 160ms ease;
-        min-width: 0; /* allow flex-1 to shrink */
+        transition: all 180ms ease;
+        min-width: 0;
+        white-space: nowrap;
+        border: none;
+        transform: none !important; /* prevent vertical shift misalignment */
     }
 
-    /* Active tab: raised white pill */
+    /* Active tab: solid teal pill with white text */
     .tabs-trigger[data-state="active"] {
-        background: hsl(var(--card));
-        color: hsl(var(--foreground));
-        box-shadow: 0 6px 18px rgba(16,24,40,0.08);
-        transform: translateY(-4px);
-        border: 1px solid rgba(16,24,40,0.04);
+        background: #0d9488;
+        color: #ffffff;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(13,148,136,0.35);
+        border: none;
+        transform: none !important;
     }
 
     /* Hover for non-active tabs */
-    .tabs-trigger:hover {
-        background: rgba(15,23,42,0.02);
-        transform: translateY(-2px);
+    .tabs-trigger:not([data-state="active"]):hover {
+        background: rgba(15,23,42,0.05);
+        color: #334155;
+        transform: none !important;
     }
 
     /* Tabs list: full-width rounded container */
     .tabs-list {
         display: flex;
-        gap: 0.5rem;
-        padding: 0.35rem;
-        background: hsl(var(--muted));
-        border-radius: 1rem;
-        border: 1px solid rgba(15,23,42,0.04);
-        align-items: center;
+        gap: 0.25rem;
+        padding: 0.3rem;
+        background: #f1f5f9;
+        border-radius: 0.85rem;
+        border: 1px solid #e2e8f0;
+        align-items: stretch;
+        width: 100%;
     }
 }
 

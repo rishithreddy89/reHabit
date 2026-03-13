@@ -143,7 +143,12 @@ const getOrCreateUserGamification = async (userId) => {
   let userGamification = await UserGamification.findOne({ userId });
   
   if (!userGamification) {
-    userGamification = await UserGamification.create({ userId });
+    // Give new users a 200-coin welcome bonus
+    userGamification = await UserGamification.create({
+      userId,
+      coins: 200
+    });
+    console.log(`🎁 Welcome bonus: 200 coins granted to new user ${userId}`);
   }
   
   return userGamification;

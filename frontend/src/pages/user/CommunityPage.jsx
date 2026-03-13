@@ -43,6 +43,9 @@ const CommunityPage = ({ user, onLogout }) => {
   });
 
   const [demoJoined, setDemoJoined] = useState(() => demoStore.getJoinedCommunities());
+  const [showAllRecommended, setShowAllRecommended] = useState(false);
+  const [showAllDiscover, setShowAllDiscover] = useState(false);
+  const INITIAL_VISIBLE = 3;
 
   useEffect(() => {
     const unsub = demoStore.subscribe(() => setDemoJoined(demoStore.getJoinedCommunities()));
@@ -595,6 +598,8 @@ const CommunityPage = ({ user, onLogout }) => {
                 .filter(c => c.matchScore && c.matchScore >= 85)
                 .sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0))
                 .slice(0, 6);
+              const visibleRecommended = showAllRecommended ? recommendedCommunities : recommendedCommunities.slice(0, INITIAL_VISIBLE);
+              const hasMoreRecommended = recommendedCommunities.length > INITIAL_VISIBLE;
               
               return recommendedCommunities.length > 0 && (
                 <div className="mb-8">
@@ -613,7 +618,7 @@ const CommunityPage = ({ user, onLogout }) => {
                   </div>
                   <p className="text-sm text-slate-600 mb-4">Communities that match your interests and activity patterns</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    {recommendedCommunities.map((community) => {
+                    {visibleRecommended.map((community) => {
                       const communityId = community._id || community.id;
                       const matchScore = community.matchScore || 85;
                       return (
@@ -634,17 +639,31 @@ const CommunityPage = ({ user, onLogout }) => {
                             <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
                             <Button
                               onClick={() => handleJoin(communityId)}
-                              className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white transition-all duration-200 shadow-sm"
+                              className="w-full h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.97]"
                               data-testid={`join-community-${communityId}`}
                             >
-                              <UserPlus className="w-4 h-4 mr-2" />
-                              Join Group
+                              <UserPlus className="w-4 h-4 shrink-0" />
+                              <span>Join Group</span>
                             </Button>
                           </CardContent>
                         </Card>
                       );
                     })}
                   </div>
+                  {hasMoreRecommended && (
+                    <div className="mt-5 flex justify-center">
+                      <button
+                        onClick={() => setShowAllRecommended(v => !v)}
+                        className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-emerald-200 bg-white text-emerald-700 font-semibold text-sm shadow-sm hover:bg-emerald-50 hover:border-emerald-400 transition-all duration-200 active:scale-95"
+                      >
+                        {showAllRecommended ? (
+                          <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>Show Less</>
+                        ) : (
+                          <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>View {recommendedCommunities.length - INITIAL_VISIBLE} More</>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -655,6 +674,8 @@ const CommunityPage = ({ user, onLogout }) => {
               const otherCommunities = unjoinedCommunities
                 .filter(c => !c.matchScore || c.matchScore < 85)
                 .slice(0, 9);
+              const visibleDiscover = showAllDiscover ? otherCommunities : otherCommunities.slice(0, INITIAL_VISIBLE);
+              const hasMoreDiscover = otherCommunities.length > INITIAL_VISIBLE;
               
               return (
                 <>
@@ -677,33 +698,49 @@ const CommunityPage = ({ user, onLogout }) => {
                       </CardContent>
                     </Card>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                      {otherCommunities.map((community) => {
-                        const communityId = community._id || community.id;
-                        return (
-                          <Card key={communityId} className="card-hover shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all duration-200 border border-emerald-100 bg-white/60 backdrop-blur-sm rounded-xl" data-testid={`community-${communityId}`}>
-                            <CardHeader>
-                              <CardTitle className="flex items-center gap-2">
-                                <Users className="w-5 h-5 text-emerald-600" />
-                                {community.name}
-                              </CardTitle>
-                              <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
-                              <Button
-                                onClick={() => handleJoin(communityId)}
-                                className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white transition-colors duration-150"
-                                data-testid={`join-community-${communityId}`}
-                              >
-                                <UserPlus className="w-4 h-4 mr-2" />
-                                Join Group
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {visibleDiscover.map((community) => {
+                          const communityId = community._id || community.id;
+                          return (
+                            <Card key={communityId} className="card-hover shadow-sm hover:shadow-md transform hover:-translate-y-1 transition-all duration-200 border border-emerald-100 bg-white/60 backdrop-blur-sm rounded-xl" data-testid={`community-${communityId}`}>
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <Users className="w-5 h-5 text-emerald-600" />
+                                  {community.name}
+                                </CardTitle>
+                                <CardDescription>{community.members?.length ?? 0} members • {community.category || 'general'}</CardDescription>
+                              </CardHeader>
+                              <CardContent className="space-y-2">
+                                <p className="text-sm text-slate-600 mb-4">{community.description || 'No description'}</p>
+                                <Button
+                                  onClick={() => handleJoin(communityId)}
+                                  className="w-full h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 active:scale-[0.97]"
+                                  data-testid={`join-community-${communityId}`}
+                                >
+                                  <UserPlus className="w-4 h-4 shrink-0" />
+                                  <span>Join Group</span>
+                                </Button>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                      </div>
+                      {hasMoreDiscover && (
+                        <div className="mt-5 flex justify-center">
+                          <button
+                            onClick={() => setShowAllDiscover(v => !v)}
+                            className="inline-flex items-center gap-2 px-6 py-2 rounded-full border border-emerald-200 bg-white text-emerald-700 font-semibold text-sm shadow-sm hover:bg-emerald-50 hover:border-emerald-400 transition-all duration-200 active:scale-95"
+                          >
+                            {showAllDiscover ? (
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>Show Less</>
+                            ) : (
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>View {otherCommunities.length - INITIAL_VISIBLE} More</>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               );

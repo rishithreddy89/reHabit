@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'react-hot-toast';
 import axios from 'axios';
+import { API } from '../lib/config';
 
 const AuthPage = () => {
   const [mode, setMode] = useState('login'); // 'login' | 'register' | 'otp'
@@ -27,7 +28,7 @@ const AuthPage = () => {
 
     try {
       if (mode === 'login') {
-        const response = await axios.post('http://localhost:4000/api/auth/login', {
+        const response = await axios.post(`${API}/auth/login`, {
           email: formData.email,
           password: formData.password
         });
@@ -37,7 +38,7 @@ const AuthPage = () => {
         toast.success('Welcome back to NeuraRise! 🚀');
         window.location.href = '/dashboard';
       } else if (mode === 'register') {
-        const response = await axios.post('http://localhost:4000/api/auth/register', {
+        const response = await axios.post(`${API}/auth/register`, {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -54,7 +55,7 @@ const AuthPage = () => {
           window.location.href = '/onboarding';
         }
       } else if (mode === 'otp') {
-        const response = await axios.post('http://localhost:4000/api/auth/verify-otp', {
+        const response = await axios.post(`${API}/auth/verify-otp`, {
           phone: formData.phone,
           otp: formData.otp
         });

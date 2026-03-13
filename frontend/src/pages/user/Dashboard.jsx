@@ -1,6 +1,6 @@
 import '@/index.css';
 import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import axios from '@/lib/axiosInstance';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,6 @@ import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
 import { Target, Flame, Star, TrendingUp, Plus, Sparkles, Map } from 'lucide-react';
 import ProgressMapContainer from '@/components/progress-map/ProgressMapContainer_v2';
-import { toast } from 'sonner';
 import PlantGrowthCard from '@/components/PlantGrowthCard';
 import LevelUpAnimation from '@/components/LevelUpAnimation';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
@@ -67,30 +66,30 @@ const UserDashboard = ({ user, onLogout }) => {
   const fetchDashboardData = async () => {
     try {
       const [statsRes, habitsRes] = await Promise.all([
-        axios.get(`${API}/users/stats`),
-        axios.get(`${API}/habits`)
+        axios.get(`${API}/users/stats`).catch(() => ({ data: null })),
+        axios.get(`${API}/habits`).catch(() => ({ data: [] }))
       ]);
       
       // Check for level up
-      const currentLevel = statsRes.data.level;
+      const currentLevel = statsRes.data?.level;
       const lastSeenLevel = previousLevelRef.current;
       
-      if (lastSeenLevel !== null && currentLevel > lastSeenLevel) {
+      if (currentLevel && lastSeenLevel !== null && currentLevel > lastSeenLevel) {
         setNewLevel(currentLevel);
         setShowLevelUp(true);
         localStorage.setItem('lastSeenLevel', currentLevel.toString());
         previousLevelRef.current = currentLevel;
-      } else if (lastSeenLevel === null) {
+      } else if (lastSeenLevel === null && currentLevel) {
         // First time - just store the level without showing animation
         localStorage.setItem('lastSeenLevel', currentLevel.toString());
         previousLevelRef.current = currentLevel;
-      } else {
+      } else if (currentLevel) {
         // Level didn't change
         previousLevelRef.current = currentLevel;
       }
 
-      setStats(statsRes.data);
-      setHabits(habitsRes.data.slice(0, 5));
+      if (statsRes.data) setStats(statsRes.data);
+      setHabits((habitsRes.data || []).slice(0, 5));
       
       try {
         const leaderboardRes = await axios.get(`${API}/users/leaderboard`);
@@ -109,9 +108,6 @@ const UserDashboard = ({ user, onLogout }) => {
       }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
-      if (!document.hidden) {
-        toast.error('Failed to load dashboard data');
-      }
     } finally {
       setLoading(false);
     }
@@ -238,11 +234,16 @@ const UserDashboard = ({ user, onLogout }) => {
               </CardHeader>
               <CardContent>
                 {habits.length === 0 ? (
-                  <div className="text-center py-8 text-slate-500">
-                    <Target className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                    <p>No habits yet. Start building!</p>
+                  <div className="text-center py-10 sm:py-14 flex flex-col items-center gap-3">
+                    <Target className="w-14 h-14 sm:w-16 sm:h-16 text-slate-200" />
+                    <p className="text-slate-500 text-sm sm:text-base font-medium">No habits yet. Start building!</p>
                     <Link to="/user/habits">
-                      <Button className="mt-4" data-testid="create-first-habit">Create Your First Habit</Button>
+                      <Button
+                        className="mt-2 px-6 sm:px-8 py-2 sm:py-2.5 text-sm sm:text-base font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md hover:shadow-lg transition-all duration-200 w-full sm:w-auto"
+                        data-testid="create-first-habit"
+                      >
+                        Create Your First Habit
+                      </Button>
                     </Link>
                   </div>
                 ) : (

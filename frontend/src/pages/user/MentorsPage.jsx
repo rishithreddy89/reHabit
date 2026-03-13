@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin, Star, UserCheck, Filter, Users } from 'lucide-react';
+import { Search, MapPin, Star, UserCheck, Filter, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { API } from '@/lib/config';
@@ -124,7 +124,7 @@ const MentorsPage = ({ user, onLogout }) => {
         </div>
 
         {/* Filters */}
-        <Card className="shadow-sm border border-slate-200">
+        <Card className="shadow-md border border-slate-200" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)' }}>
           <CardContent className="pt-4 pb-4 px-4 sm:pt-5 sm:pb-5 sm:px-6">
             <form onSubmit={handleSearch} className="space-y-3">
               {/* Search bar with inline button */}
@@ -209,12 +209,12 @@ const MentorsPage = ({ user, onLogout }) => {
         {/* Mentors Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {mentors.length === 0 ? (
-            <Card className="col-span-full">
+            <Card className="col-span-full border border-slate-200" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)' }}>
               <CardContent className="py-16 flex flex-col items-center justify-center text-center">
                 <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-5">
                   <Users className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-700 mb-2">No mentors found</h3>
+                <h3 className="text-lg font-semibold text-center text-slate-700 mb-2">No mentors found</h3>
                 <p className="text-slate-500 mb-6 max-w-xs mx-auto">
                   {category !== 'all' || ratingFilter !== 'all' || onlineOnly || search
                     ? 'Try adjusting your filters or search criteria'
@@ -228,8 +228,9 @@ const MentorsPage = ({ user, onLogout }) => {
                       setOnlineOnly(false);
                       setSearch('');
                     }}
-                    className="bg-gradient-to-br from-emerald-500 to-teal-600 hover:opacity-90 text-white border-0 shadow-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium shadow-md hover:shadow-emerald-200 hover:shadow-lg transition-all duration-200 border-0 active:scale-95"
                   >
+                    <X className="w-3.5 h-3.5" />
                     Clear Filters
                   </Button>
                 )}
@@ -237,7 +238,7 @@ const MentorsPage = ({ user, onLogout }) => {
             </Card>
           ) : (
             mentors.map((mentor) => (
-              <Card key={mentor._id} className="card-hover shadow-sm hover:shadow-md border border-slate-200 rounded-xl overflow-hidden transition-all duration-200" data-testid={`mentor-card-${mentor._id}`}>
+              <Card key={mentor._id} className="card-hover border border-slate-200 rounded-xl overflow-hidden transition-all duration-200" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)' }} onMouseEnter={e => e.currentTarget.style.boxShadow='0 8px 28px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.08)'} onMouseLeave={e => e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.06)'} data-testid={`mentor-card-${mentor._id}`}>
                 <CardHeader className="pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
                   <div className="flex items-start gap-3">
                     <img

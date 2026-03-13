@@ -46,7 +46,11 @@ if (!MONGO_URI && MONGO_USER && MONGO_PASS && MONGO_HOST) {
   }
 }
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+const RAW_CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:5173';
+// Support comma-separated origins, e.g. "https://app.example.com,http://localhost:5173"
+const CORS_ORIGIN = RAW_CORS_ORIGIN.includes(',')
+  ? RAW_CORS_ORIGIN.split(',').map(o => o.trim())
+  : RAW_CORS_ORIGIN;
 // In development reflect the request origin to avoid strict origin mismatches (useful for localhost testing).
 // In production use configured CORS_ORIGIN (string or array).
 const devReflectOrigin = process.env.NODE_ENV !== 'production';

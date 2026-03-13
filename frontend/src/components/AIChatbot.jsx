@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Send, X, Sparkles, Loader2, User } from 'lucide-react';
 import axios from 'axios';
+import { API } from '@/lib/config';
 
 const AIChatbot = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([
@@ -42,7 +43,7 @@ const AIChatbot = ({ isOpen, onClose }) => {
       const token = localStorage.getItem('token');
 
       const response = await axios.post(
-        'http://localhost:4000/api/ai/chatbot',
+        `${API}/ai/chatbot`,
         {
           query: input,
           userContext: {
